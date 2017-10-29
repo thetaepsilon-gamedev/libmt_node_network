@@ -19,5 +19,17 @@ then the new vertex effectively constructs a bridge between those graphs;
 one of the graphs is picked to have the others merged into,
 then the original vertex is added to the merged network.
 
+For removing a vertex, prior to it's actual removal,
+again it's successors are examined.
+If the vertex has no successors then it is simply removed from it's containing graph;
+as by the time this can happen the graph will only have that one vertex left,
+this will trigger the deletion of the now-empty graph.
 
+Otherwise, one of the successors is picked and the search algorithm is run on it.
+When the search has completed, the other successors are compared against the search's visited set.
+If any of the successors are NOT contained in the visited set,
+then they are no longer reachable from the current graph and represent a completely disconnected section.
+Each candidate successor then has the search algorithm ran on it and it's results inserted into a new graph;
+checking along the way to see if any of the new networks now include the candidate,
+until no candidates remain.
 ]]
