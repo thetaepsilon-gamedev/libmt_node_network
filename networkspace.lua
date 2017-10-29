@@ -13,8 +13,12 @@
 -- the same way certain technic nodes respond to mesecons and/or digilines events.
 
 local modulefactory = function(deps)
+	local logger = deps.logger
+
 	local interface = {
-		
+		register = function(name)
+			logger("networkspace.register.stub", {name=name})
+		end
 	}
 	return interface
 end
