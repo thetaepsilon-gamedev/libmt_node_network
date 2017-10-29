@@ -77,6 +77,7 @@ return {
 			vertexlimit = nil
 		end
 		debugger(dname_new.."entry, callbacks ready")
+		debugger(dname_new.."vertexlimit="..tostring(vertexlimit))
 
 		-- now onto the actual algorith data/code
 		local self = {
@@ -135,6 +136,7 @@ return {
 						debugger(dname.."skipping frontier due to vertex limit, hash="..tostring(frontier_hash))
 						table.insert(self.limitskipped, frontier)
 						increment(stats, "limit_skipped_frontiers")
+						return true
 					end
 
 					-- get successors of this vertex
