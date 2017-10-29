@@ -1,4 +1,4 @@
 return {
 	bfmap = _mod.modules.bfmap,
-	networkspaces = _mod.modules.networkspace,
+	networkspaces = _mod.modules.networkspace_register,
 }

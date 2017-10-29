@@ -29,5 +29,5 @@ _mod.modules.bfmap = bfmap
 local networkspace_deps = {
 	logger = logger
 }
-local networkspace_factory = dofile(dir.."networkspace.lua")
+local networkspace_factory = dofile(dir.."networkspace_register.lua")
 _mod.modules.networkspace = networkspace_factory(networkspace_deps)
