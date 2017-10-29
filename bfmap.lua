@@ -49,6 +49,8 @@ return {
 	--	debugger: called with trace point messages if it exists.
 	--	markfrontier: called when a vertex is added as a frontier.
 	--	finished: called when the graph has been exhaustively mapped.
+	--		gets passed the following arguments:
+	--		remainder: an iterator which will return the remaining skipped vertexes.
 	-- if initial is nil, advance() below is guaranteed to return false on first invocation.
 	-- note that if any callbacks edit the graph nodes during or between advance steps
 	-- (e.g. by editing the world, changing the outcome of the successor function),
@@ -98,11 +100,13 @@ return {
 			-- separate node count which is checked against vertexlimit.
 			-- any still-valid frontiers popped when vertexlimit is met or exceeeded are skipped.
 			vertexcount = 0,
-			-- vertex set to which skipped frontiers are added.
-			-- can be queried when the algorithm is complete.
-			-- utilises hasher so that "equal" vertexes are not inserted twice.
-			limitskipped = {}
 		}
+		-- invoke onfinished handler
+		local whenfinished = function()
+			self.finished = true
+			-- frontiers queue will contain any remaining frontiers at this point if terminating due to limit
+			oncompleted(self.frontiers.iterator())
+		end
 		-- add initial vertex to start off process
 		self.frontiers.enqueue(initial)
 		local interface = {
@@ -112,12 +116,18 @@ return {
 
 				local dname = "bfmap.advance() "
 				debugger(dname.."entry")
-				local frontier = self.frontiers.next()
 
+				-- stop immediately if we've exceeded the limit,
+				-- leaving all pending frontiers in the queue for the oncompleted callback.
+				if (vertexlimit and self.vertexcount >= vertexlimit) then
+					whenfinished()
+					return false
+				end
+
+				local frontier = self.frontiers.next()
 				-- if the frontier list is empty, we're done.
 				if frontier == nil then
-					self.finished = true
-					oncompleted(self.limitskipped)
+					whenfinished()
 					return false
 				end
 				debugger(dname.."got frontier: "..tostring(frontier))
@@ -128,16 +138,6 @@ return {
 
 				if testvertex(frontier) then
 					debugger(dname.."frontier passed testvertex")
-
-					-- if the vertex limit has been succeeded but this is a valid vertex still,
-					-- add it to the skipped list without any further processing.
-					-- note that the pending check for inserting frontiers ensures uniqueness already.
-					if vertexlimit and self.vertexcount >= vertexlimit then
-						debugger(dname.."skipping frontier due to vertex limit, hash="..tostring(frontier_hash))
-						table.insert(self.limitskipped, frontier)
-						increment(stats, "limit_skipped_frontiers")
-						return true
-					end
 
 					-- get successors of this vertex
 					local successors = successor(frontier)
@@ -173,11 +173,6 @@ return {
 				return true
 			end,
 			stats = function() return self.stats end,
-			-- retrieve a list of frontiers skipped due to the vertex limit.
-			-- only accessible when the algorithm has completed.
-			getskipped = function()
-				if self.finished then return self.limitskipped end
-			end
 		}
 		return interface
 	end
