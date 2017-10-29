@@ -95,7 +95,7 @@ return {
 			-- various statistical data gathered during the run
 			stats = {},
 			-- separate node count which is checked against vertexlimit.
-			-- any frontiers popped when vertexlimit is met or exceeeded are skipped.
+			-- any still-valid frontiers popped when vertexlimit is met or exceeeded are skipped.
 			vertexcount = 0,
 			-- vertex set to which skipped frontiers are added.
 			-- can be queried when the algorithm is complete.
@@ -127,6 +127,16 @@ return {
 
 				if testvertex(frontier) then
 					debugger(dname.."frontier passed testvertex")
+
+					-- if the vertex limit has been succeeded but this is a valid vertex still,
+					-- add it to the skipped list without any further processing.
+					-- note that the pending check for inserting frontiers ensures uniqueness already.
+					if vertexlimit and self.vertexcount >= vertexlimit then
+						debugger(dname.."skipping frontier due to vertex limit, hash="..tostring(frontier_hash))
+						table.insert(self.limitskipped, frontier)
+						increment(stats, "limit_skipped_frontiers")
+					end
+
 					-- get successors of this vertex
 					local successors = successor(frontier)
 					increment(stats, "successor_invocation_count")
@@ -148,6 +158,7 @@ return {
 						increment(stats, "successor_result_total")
 					end
 					-- mark this node visited
+					self.vertexcount = self.vertexcount + 1
 					visitor(frontier)
 					self.visited[frontier_hash] = true
 					increment(stats, "visited_count")
