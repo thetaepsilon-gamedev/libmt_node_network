@@ -116,7 +116,7 @@ return {
 				-- if the frontier list is empty, we're done.
 				if frontier == nil then
 					self.finished = true
-					oncompleted()
+					oncompleted(self.limitskipped)
 					return false
 				end
 				debugger(dname.."got frontier: "..tostring(frontier))
