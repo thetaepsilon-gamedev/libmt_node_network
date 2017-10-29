@@ -171,6 +171,11 @@ return {
 				return true
 			end,
 			stats = function() return self.stats end,
+			-- retrieve a list of frontiers skipped due to the vertex limit.
+			-- only accessible when the algorithm has completed.
+			getskipped = function()
+				if self.finished then return self.limitskipped end
+			end
 		}
 		return interface
 	end
