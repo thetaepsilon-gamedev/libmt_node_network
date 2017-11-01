@@ -19,6 +19,16 @@ then the new vertex effectively constructs a bridge between those graphs;
 one of the graphs is picked to have the others merged into,
 then the original vertex is added to the merged network.
 
+It is also possible that the successor vertexes also do not belong to a tracked graph yet.
+After the above consideration is applied,
+any vertex that is NOT part of an existing graph spawns a search to map out potential new graph segments.
+It is assumed that the graph has not been modified without notifying the vertex space,
+therefore each explored successor graph does NOT check any vertexes that it comes across to see if they also already belong to a graph.
+After processing one successor's graph,
+any of the successors now in the graph's visited set
+(that is, that successor is *reachable* from a successor mapped before it) are skipped.
+These graphs are then merged with any others connected to the initiating vertex as above.
+
 For removing a vertex, prior to it's actual removal,
 again it's successors are examined.
 If the vertex has no successors then it is simply removed from it's containing graph;
@@ -32,6 +42,12 @@ then they are no longer reachable from the current graph and represent a complet
 Each candidate successor then has the search algorithm ran on it and it's results inserted into a new graph;
 checking along the way to see if any of the new networks now include the candidate,
 until no candidates remain.
+
+It should be noted that in a sense the vertex space does not "own" the vertexes per se.
+The vertexes and the graphs they form exist anyway
+(the graphs are implied by connections between vertexes).
+The vertex space merely acts as a tracking mechanism.
+It also assumes that the graphs are undirected.
 ]]
 local dname_new = "vertexspace.new()"
 local newsearch = _mod.modules.bfmap.new
@@ -42,6 +58,8 @@ return {
 	-- contains the following function keys:
 	--	hasher: like in bfmap, must return a uniquely identifying value.
 	--		references to the same vertex must hash to the same value.
+	--	successor: also like in bfmap,
+	--		returns references to the vertexes connected to the given vertex.
 	new = function(impl)
 		if type(impl) ~= "table" then
 			error(dname_new.." no impl table passed for vertex functions")
@@ -59,8 +77,17 @@ return {
 		local graphs = {}
 
 		local hasher = check(impl.hasher, "vertex hasher")
+		local successor = check(impl.successor, "vertex successor")
 
 		local interface = {}
+
+		-- insert a new vertex into the vertex space.
+		-- returns true if inserted, false if it already exists.
+		local addvertex = function(vertex)
+			local hash = hasher(vertex)
+			if maptograph[hash] ~= nil then return false end
+			error("vertexspace.addvertex() vertex new, stub!")
+		end
 
 		return interface
 	end,
