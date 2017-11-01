@@ -33,3 +33,35 @@ Each candidate successor then has the search algorithm ran on it and it's result
 checking along the way to see if any of the new networks now include the candidate,
 until no candidates remain.
 ]]
+local dname_new = "vertexspace.new()"
+local newsearch = _mod.modules.bfmap.new
+local check = _mod.util.mkfnexploder(dname_new)
+
+return {
+	-- impl contains functions that handle vertex-type-specific functionality.
+	-- contains the following function keys:
+	--	hasher: like in bfmap, must return a uniquely identifying value.
+	--		references to the same vertex must hash to the same value.
+	new = function(impl)
+		if type(impl) ~= "table" then
+			error(dname_new.." no impl table passed for vertex functions")
+		end
+
+		-- vertex-to-graph mapping.
+		-- keys are determined by the hasher function.
+		local maptograph = {}
+		-- actual graph sets table.
+		-- graph IDs are numerical indexes.
+		-- the graphs themselves are also tables,
+		-- where for each entry the value is the vertex ref itself,
+		-- and the keys are the hashes.
+		local nextfree = 1
+		local graphs = {}
+
+		local hasher = check(impl.hasher, "vertex hasher")
+
+		local interface = {}
+
+		return interface
+	end,
+}

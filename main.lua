@@ -26,6 +26,8 @@ local bfmap_factory = dofile(dir.."bfmap.lua")
 local bfmap = bfmap_factory(bfmap_deps)
 _mod.modules.bfmap = bfmap
 
+_mod.modules.vertexspace = dofile(dir.."vertexspace.lua")
+
 local networkspace_deps = {
 	logger = logger
 }
