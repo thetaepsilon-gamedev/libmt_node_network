@@ -91,6 +91,12 @@ return {
 
 		local interface = {}
 
+		-- helper function to get a vertex's graph ID from it's hash.
+		-- returns nil if the vertex belongs to no network.
+		local whichgraph = function(vertexhash)
+			return maptograph[vertexhash]
+		end
+
 		-- insert a new vertex into the vertex space.
 		-- returns true if inserted, false if it already exists.
 		local addvertex = function(vertex)
