@@ -97,6 +97,36 @@ return {
 			return maptograph[vertexhash]
 		end
 
+		local comparebyvalue = function(array)
+			local compare = nil
+			for index, item in ipairs(array) do
+				if compare == nil then
+					compare = item
+				elseif item ~= compare then
+					return false
+				end
+			end
+			return true
+		end
+		-- helper to determine if a set of vertexes are all on the same graph.
+		-- returns true if all vertexes map to the same graph ID.
+		-- if any of them are *not* on a graph this returns false.
+		-- additionally returns the hashes of the accessed vertexes.
+		local comparesamegraph = function(vertexes)
+			local hashes = {}
+			local graphs = {}
+			for index, vertex in ipairs(vertexes) do
+				hash = hasher(vertex)
+				table.insert(hashes, hash)
+			end
+			for index, hash in ipairs(hashes) do
+				local graphid = whichgraph(hash)
+				if graphid == nil then return false end
+				table.insert(graphs, graphid)
+			end
+			return comparebyvalue(graphs), hashes
+		end
+
 		-- insert a new vertex into the vertex space.
 		-- returns true if inserted, false if it already exists.
 		local addvertex = function(vertex)
