@@ -1,4 +1,7 @@
 --[[
+Please read all of this before exploring the code.
+It's long, but that's because it's a tricky concept to get around at first.
+
 A vertex space is an abstract set of vertexes.
 Within the vertex space, these vertexes may be grouped into connected graphs.
 A vertex is at any time a member of exactly one graph;
@@ -48,6 +51,13 @@ The vertexes and the graphs they form exist anyway
 (the graphs are implied by connections between vertexes).
 The vertex space merely acts as a tracking mechanism.
 It also assumes that the graphs are undirected.
+
+It should also be noted that there is the assumption that vertexes do not care about being reassigned to graphs.
+As above, for instance, if an existing graph is detected during a new graph's search,
+that graph is emptied and then the new graph will take it's nodes.
+This is in general to prevent stale state issues.
+The callbacks for graph creation/destruction etc. should be comfortable dealing with this;
+potentially they must be able to deal with a complete destruction and recalculation of all graphs every time any vertex is added/removed.
 ]]
 local dname_new = "vertexspace.new()"
 local newsearch = _mod.modules.bfmap.new
