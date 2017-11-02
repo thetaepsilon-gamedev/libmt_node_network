@@ -111,7 +111,7 @@ return {
 		-- helper to determine if a set of vertexes are all on the same graph.
 		-- returns true if all vertexes map to the same graph ID.
 		-- if any of them are *not* on a graph this returns false.
-		-- additionally returns the hashes of the accessed vertexes.
+		-- otherwise returns true, as well as the graph ID in that case.
 		local comparesamegraph = function(vertexes)
 			local hashes = {}
 			local graphs = {}
@@ -124,7 +124,10 @@ return {
 				if graphid == nil then return false end
 				table.insert(graphs, graphid)
 			end
-			return comparebyvalue(graphs), hashes
+			local result = comparebyvalue(graphs)
+			local resultid
+			if result then resultid = graphs[1] end
+			return result, resultid
 		end
 
 		-- insert a new vertex into the vertex space.
