@@ -32,6 +32,17 @@ local callback_or_missing = function(t, key, default)
 	end
 end
 
+local checktable = function(tbl, label)
+	-- table might be nil if not explicitly set - treat as not wanting to assign callbacks
+	local result = tbl
+	local t = type(tbl)
+	if t == "nil" then
+		result = {}
+	elseif t ~= "table"
+		error(dname_new..label.." table expected to be either a table or nil, got "..t)
+	end
+	return result
+end
 return {
 	-- set up the initial state of the search.
 	-- requires an initial graph vertex and a successor function.
@@ -62,13 +73,9 @@ return {
 		checkfn(successor, "successor", dname_new)
 		checkfn(hasher, "hasher", dname_new)
 
-		if (callbacks ~= nil) then
-			if type(callbacks) ~= "table" then
-				error(dname_new.."callbacks expected to be nil or a table")
-			end
-		else
-			callbacks = {}
-		end
+		callbacks = checktable(callbacks, "callbacks")
+		opts = checktable(opts, "opts")
+
 		local testvertex = callback_or_missing(callbacks, "testvertex", passthrough)
 		local visitor = callback_or_missing(callbacks, "visitor", stub)
 		local debugger = callback_or_missing(callbacks, "debugger", stub)
