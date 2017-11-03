@@ -261,8 +261,8 @@ return {
 			local newgraphid = newgraph()
 			local graphset = search.getvisited()
 			assert(graphset ~= nil, "graph set should be obtainable when search completes")
-			graphs[graphid] = graphset
-			c_graph_assign(graphid, graphset)
+			graphs[newgraphid] = graphset
+			c_graph_assign(newgraphid, graphset)
 
 			return true
 		end
