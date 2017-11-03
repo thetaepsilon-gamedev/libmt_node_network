@@ -243,6 +243,7 @@ return {
 				end
 			end
 
+			local newgraphid = newgraph()
 			-- start the search at the originating vertex.
 			-- when the search is complete, search.getvisited() is used to retrieve the entire visited set;
 			-- as this is a map from hashes to vertexes, that set is simply assigned as the new vertex set.
@@ -257,7 +258,6 @@ return {
 			while search.advance() do end
 
 			-- when finished, the collected vertex set becomes the new graph.
-			local newgraphid = newgraph()
 			local graphset = search.getvisited()
 			assert(graphset ~= nil, "graph set should be obtainable when search completes")
 			graphs[newgraphid] = graphset
