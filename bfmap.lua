@@ -7,6 +7,7 @@ local factory = function(deps)
 local newqueue = deps.new.queue
 local increment = deps.increment_counter
 local mkfnexploder = deps.mkfnexploder
+local mk_callback_or_missing = deps.mk_callback_or_missing
 
 local dname_new = "bfmap.new() "
 -- helpers for callbacks in the code below.
@@ -16,17 +17,6 @@ local stub = function()
 end
 local passthrough = function(vertex)
 	return true
-end
-local mk_callback_or_missing = function(caller)
-	local checkfn = mkfnexploder(caller)
-	return function(t, key, default)
-		local fn = t[key]
-		if fn ~= nil then
-			return checkfn(fn, "callback "..key)
-		else
-			return default
-		end
-	end
 end
 
 local checktable = function(tbl, label)
