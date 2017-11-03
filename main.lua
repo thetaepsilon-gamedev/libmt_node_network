@@ -24,6 +24,7 @@ local bfmap_deps = {
 		queue = _mod.new.queue,
 	},
 	increment_counter = _mod.util.increment_counter,
+	mkfnexploder = _mod.util.mkfnexploder,
 }
 local bfmap_factory = dofile(dir.."bfmap.lua")
 local bfmap = bfmap_factory(bfmap_deps)
