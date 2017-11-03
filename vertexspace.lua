@@ -139,7 +139,7 @@ return {
 			assert(oldgraph ~= nil, "non-existant graph", { graphid=graphid })
 
 			c_graph_delete_pre(graphid, oldgraph)
-			for hash, vertex in pairs() do
+			for hash, vertex in pairs(oldgraph) do
 				-- mapping should point each vertex in this graph to this graphid.
 				-- if not, something blew up.
 				local actual = maptograph[hash]
