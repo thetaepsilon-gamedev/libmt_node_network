@@ -20,4 +20,4 @@ local mk_callback_or_missing = function(caller)
 		end
 	end
 end
-_mod.util.callback_or_missing = callback_or_missing
+_mod.util.mk_callback_or_missing = mk_callback_or_missing
