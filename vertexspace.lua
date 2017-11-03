@@ -262,6 +262,7 @@ return {
 
 			return true
 		end
+		interface.addvertex = addvertex
 
 
 
