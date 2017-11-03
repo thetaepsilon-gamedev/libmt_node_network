@@ -235,10 +235,13 @@ return {
 			-- any existed graphs touched by the search are removed,
 			-- under the assumption that if they are still reachable,
 			-- then they will become part of the new graph.
-			local samecase, graphid = comparesamegraph(successors)
-			if samecase then
-				insertintograph(graphid, addedvertex, vertexhash)
-				return true
+			if #successors > 0 then
+				-- it doesn't make sense here to compare an empty set for equality.
+				local samecase, graphid = comparesamegraph(successors)
+				if samecase then
+					insertintograph(graphid, addedvertex, vertexhash)
+					return true
+				end
 			end
 
 			-- start the search at the originating vertex.
