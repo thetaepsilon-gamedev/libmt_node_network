@@ -19,17 +19,21 @@ local passthrough = function(vertex)
 	return true
 end
 
-local checktable = function(tbl, label)
-	-- table might be nil if not explicitly set - treat as not wanting to assign callbacks
-	local result = tbl
-	local t = type(tbl)
-	if t == "nil" then
-		result = {}
-	elseif t ~= "table" then
-		error(dname_new..label.." table expected to be either a table or nil, got "..t)
+local mk_table_or_missing = function(caller)
+	return function(tbl, label)
+		-- table might be nil if not explicitly set - treat as not wanting to assign any values/options
+		local result = tbl
+		local t = type(tbl)
+		if t == "nil" then
+			result = {}
+		elseif t ~= "table" then
+			error(caller.." "..label.." table expected to be either a table or nil, got "..t)
+		end
+		return result
 	end
-	return result
 end
+
+local checktable = mk_table_or_missing(dname_new)
 local checkfn = mkfnexploder(dname_new)
 local callback_or_missing = mk_callback_or_missing(dname_new)
 return {
