@@ -213,7 +213,7 @@ return {
 		local addvertex = function(addedvertex)
 			local assert = mkassert("addvertex")
 			-- don't do anything if this vertex already exists.
-			if maptograph(addedvertex) ~= nil then return false end
+			if whichgraph(addedvertex) ~= nil then return false end
 
 			visited_set = {}
 			local successors = successor(addedvertex)
