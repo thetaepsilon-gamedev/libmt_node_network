@@ -159,7 +159,7 @@ return {
 		local newgraph = function()
 			local newgraph = nextfree
 			nextfree = newgraph + 1
-			c_onnewgraph(graphid)
+			c_onnewgraph(newgraph)
 			return newgraph
 		end
 
