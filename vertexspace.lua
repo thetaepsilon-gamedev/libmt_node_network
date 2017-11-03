@@ -131,6 +131,13 @@ return {
 			-- TODO: post-delete callback with oldgraph
 		end
 
+		-- allocates a new graph ID.
+		local newgraph = function()
+			local newgraph = nextfree
+			nextfree = newgraph + 1
+			return newgraph
+		end
+
 		-- helper function to get a vertex's graph ID from it's hash.
 		-- returns nil if the vertex belongs to no network.
 		local whichgraph = function(vertexhash)
@@ -175,9 +182,12 @@ return {
 			return newbfmap(initialvertex, successor, hasher, callbacks, {})
 		end
 
+
+
 		-- insert a new vertex into the vertex space.
 		-- returns true if inserted, false if it already exists.
 		local addvertex = function(addedvertex)
+			local assert = mkassert("addvertex")
 			-- don't do anything if this vertex already exists.
 			if maptograph(addedvertex) ~= nil then return false end
 
@@ -210,13 +220,27 @@ return {
 			-- when the search is complete, search.getvisited() is used to retrieve the entire visited set;
 			-- as this is a map from hashes to vertexes, that set is simply assigned as the new vertex set.
 			local searchcallbacks = {}
-			-- destroy any old networks encountered.
+			-- destroy any old graphs encountered.
+			-- TODO: invocation of vertexspace callbacks here also
+			searchcallbacks.visitor = function(vertex, vertexhash)
+				local graphid = whichgraph(vertexhash)
+				if graphid ~= nil then deletegraph(graphid) end
+			end
 			local search = newsearch(addedvertex, callbacks, {})
-			-- incomplete...
-			error("vertexspace.addvertex() WIP!")
+			-- then run search to completion
+			while search.advance() do end
+
+			-- when finished, the collected vertex set becomes the new graph.
+			local newgraphid = newgraph()
+			local graphset = search.getvisited()
+			assert(graphset ~= nil, "graph set should be obtainable when search completes")
+			graphs[graphid] = graphset
+			-- TODO: post-graph setup callbacks
 
 			return true
 		end
+
+
 
 		return interface
 	end,
