@@ -212,10 +212,15 @@ return {
 		-- insert a new vertex into the vertex space.
 		-- returns true if inserted, false if it already exists.
 		local addvertex = function(addedvertex)
+			local fname="vertexspace.addvertex"
+			debugger(fname..".entry")
 			local assert = mkassert("addvertex")
 			local vertexhash = hasher(addedvertex)
 			-- don't do anything if this vertex already exists.
-			if whichgraph(vertexhash) ~= nil then return false end
+			if whichgraph(vertexhash) ~= nil then
+				debugger(fname..".duplicateinsert", {hash=vertexhash})
+				return false
+			end
 
 			visited_set = {}
 			local successors = successor(addedvertex)
