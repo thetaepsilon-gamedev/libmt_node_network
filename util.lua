@@ -21,3 +21,20 @@ local mk_callback_or_missing = function(caller)
 	end
 end
 _mod.util.mk_callback_or_missing = mk_callback_or_missing
+
+-- helper for callbacks and options table.
+-- boilerplate for error checking and providing a blank table if nil is passed.
+local mk_table_or_missing = function(caller)
+	return function(tbl, label)
+		-- table might be nil if not explicitly set - treat as not wanting to assign any values/options
+		local result = tbl
+		local t = type(tbl)
+		if t == "nil" then
+			result = {}
+		elseif t ~= "table" then
+			error(caller.." "..label.." table expected to be either a table or nil, got "..t)
+		end
+		return result
+	end
+end
+_mod.util.mk_table_or_missing = mk_table_or_missing
