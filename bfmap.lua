@@ -8,6 +8,7 @@ local newqueue = deps.new.queue
 local increment = deps.increment_counter
 local mkfnexploder = deps.mkfnexploder
 local mk_callback_or_missing = deps.mk_callback_or_missing
+local mk_table_or_missing = deps.mk_table_or_missing
 
 local dname_new = "bfmap.new() "
 -- helpers for callbacks in the code below.
@@ -17,20 +18,6 @@ local stub = function()
 end
 local passthrough = function(vertex)
 	return true
-end
-
-local mk_table_or_missing = function(caller)
-	return function(tbl, label)
-		-- table might be nil if not explicitly set - treat as not wanting to assign any values/options
-		local result = tbl
-		local t = type(tbl)
-		if t == "nil" then
-			result = {}
-		elseif t ~= "table" then
-			error(caller.." "..label.." table expected to be either a table or nil, got "..t)
-		end
-		return result
-	end
 end
 
 local checktable = mk_table_or_missing(dname_new)
