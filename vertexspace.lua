@@ -252,6 +252,7 @@ return {
 			searchcallbacks.visitor = function(vertex, vertexhash)
 				local graphid = whichgraph(vertexhash)
 				if graphid ~= nil then deletegraph(graphid) end
+				maptograph[vertexhash] = newgraphid
 			end
 			local search = newsearch(addedvertex, callbacks, {})
 			-- then run search to completion
