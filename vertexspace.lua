@@ -62,6 +62,10 @@ potentially they must be able to deal with a complete destruction and recalculat
 local dname_new = "vertexspace.new()"
 local newbfsearch = _mod.modules.bfmap.new
 local check = _mod.util.mkfnexploder(dname_new)
+local mkassert_plain = _mod.util.mkassert
+local mkassert = function(fname)
+	return mkassert_plain("vertexspace."..fname.."() internal inconsistency")
+end
 
 return {
 	-- impl contains functions that handle vertex-type-specific functionality.
@@ -104,6 +108,27 @@ return {
 			maptograph[hash] = graphid
 			graphs[graphid][hash] = vertex
 			-- TODO here: vertex insertion callbacks
+		end
+
+		-- internal function to delete a given graph ID.
+		-- takes care of emptying each vertex from the mapping,
+		-- before removing the graph set itself.
+		local deletegraph = function(graphid)
+			local assert = mkassert("deletegraph")
+			-- TODO: pre-delete callback
+			for hash, vertex in pairs(graphs[graphid]) do
+				-- mapping should point each vertex in this graph to this graphid.
+				-- if not, something blew up.
+				local actual = maptograph[hash]
+				assert(actual == graphid, "vertexes in graph should map back to the same graph, currentgraph="..graphid.." hash="..hash.." actual="..actual)
+				-- otherwise, clear the mapping
+				maptograph[hash] == nil
+			end
+			-- now the mappings are gone but the graph set is still stored.
+			-- remove that from the graphs table and it's completely gone.
+			local oldgraph = graphs[graphid]
+			graphs[graphid] = nil
+			-- TODO: post-delete callback with oldgraph
 		end
 
 		-- helper function to get a vertex's graph ID from it's hash.
@@ -185,6 +210,7 @@ return {
 			-- when the search is complete, search.getvisited() is used to retrieve the entire visited set;
 			-- as this is a map from hashes to vertexes, that set is simply assigned as the new vertex set.
 			local searchcallbacks = {}
+			-- destroy any old networks encountered.
 			local search = newsearch(addedvertex, callbacks, {})
 			-- incomplete...
 			error("vertexspace.addvertex() WIP!")
