@@ -153,7 +153,8 @@ return {
 					-- check each result, and insert into frontiers if not already visited
 					for index, vertex in ipairs(successors) do
 						local hash = hasher(vertex)
-						if not self.visited[hash] then
+						-- hash will have been assigned below on a previous pass if already visited.
+						if self.visited[hash] == nil then
 							if not self.pending[hash] then
 								markfrontier(vertex)
 								self.pending[hash] = true
@@ -169,7 +170,7 @@ return {
 					-- mark this node visited
 					self.vertexcount = self.vertexcount + 1
 					visitor(frontier)
-					self.visited[frontier_hash] = true
+					self.visited[frontier_hash] = frontier
 					increment(stats, "visited_count")
 				else
 					debugger(dname.."frontier DISCARED by testvertex")
