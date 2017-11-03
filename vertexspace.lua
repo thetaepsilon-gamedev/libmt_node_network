@@ -259,7 +259,7 @@ return {
 				if graphid ~= nil then deletegraph(graphid) end
 				maptograph[vertexhash] = newgraphid
 			end
-			local search = newsearch(addedvertex, callbacks, {})
+			local search = newsearch(addedvertex, searchcallbacks, {})
 			-- then run search to completion
 			while search.advance() do end
 
