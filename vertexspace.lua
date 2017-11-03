@@ -66,6 +66,7 @@ local mkassert_plain = _mod.util.mkassert
 local mkassert = function(fname)
 	return mkassert_plain("vertexspace."..fname.."() internal inconsistency")
 end
+local table_or_missing = _mod.util.mk_table_or_missing(dname_new)
 
 return {
 	-- impl contains functions that handle vertex-type-specific functionality.
@@ -74,10 +75,12 @@ return {
 	--		references to the same vertex must hash to the same value.
 	--	successor: also like in bfmap,
 	--		returns references to the vertexes connected to the given vertex.
-	new = function(impl)
+	new = function(impl, callbacks, opts)
 		if type(impl) ~= "table" then
 			error(dname_new.." no impl table passed for vertex functions")
 		end
+		callbacks = table_or_missing(callbacks, "callbacks")
+		callbacks = table_or_missing(opts, "opts")
 
 		-- vertex-to-graph mapping.
 		-- keys are determined by the hasher function.
