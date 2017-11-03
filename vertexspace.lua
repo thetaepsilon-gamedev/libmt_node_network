@@ -122,7 +122,7 @@ return {
 				local actual = maptograph[hash]
 				assert(actual == graphid, "vertexes in graph should map back to the same graph, currentgraph="..graphid.." hash="..hash.." actual="..actual)
 				-- otherwise, clear the mapping
-				maptograph[hash] == nil
+				maptograph[hash] = nil
 			end
 			-- now the mappings are gone but the graph set is still stored.
 			-- remove that from the graphs table and it's completely gone.
