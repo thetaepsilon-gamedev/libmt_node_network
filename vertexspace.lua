@@ -123,7 +123,8 @@ return {
 				error("vertexspace.insertintograph() internal inconsistency: vertex already exists graph="..graphid.." hash="..tostring(hash).." oldgraph="..oldgraph)
 			end
 			maptograph[hash] = graphid
-			graphs[graphid][hash] = vertex
+			local graph = graphs[graphid]
+			graph[hash] = vertex
 			c_onappend(vertex, hash, graphid)
 		end
 
@@ -236,7 +237,7 @@ return {
 			-- then they will become part of the new graph.
 			local samecase, graphid = comparesamegraph(successors)
 			if samecase then
-				insertintograph(graph, addedvertex, vertexhash)
+				insertintograph(graphid, addedvertex, vertexhash)
 				return true
 			end
 
