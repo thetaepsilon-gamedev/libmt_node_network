@@ -17,13 +17,15 @@ end
 local passthrough = function(vertex)
 	return true
 end
-local callback_or_missing = function(t, key, default)
-	local fn = t[key]
-	if fn ~= nil then
-		checkfn(fn, "callback "..key, dname_new)
-		return fn
-	else
-		return default
+local mk_callback_or_missing = function(caller)
+	local checkfn = mkfnexploder(caller)
+	return function(t, key, default)
+		local fn = t[key]
+		if fn ~= nil then
+			return checkfn(fn, "callback "..key)
+		else
+			return default
+		end
 	end
 end
 
@@ -39,6 +41,7 @@ local checktable = function(tbl, label)
 	return result
 end
 local checkfn = mkfnexploder(dname_new)
+local callback_or_missing = mk_callback_or_missing(dname_new)
 return {
 	-- set up the initial state of the search.
 	-- requires an initial graph vertex and a successor function.
