@@ -213,13 +213,12 @@ return {
 		-- returns true if inserted, false if it already exists.
 		local addvertex = function(addedvertex)
 			local assert = mkassert("addvertex")
+			local vertexhash = hasher(addedvertex)
 			-- don't do anything if this vertex already exists.
-			if whichgraph(addedvertex) ~= nil then return false end
+			if whichgraph(vertexhash) ~= nil then return false end
 
 			visited_set = {}
 			local successors = successor(addedvertex)
-
-			local vertexhash = hasher(addedvertex)
 
 			local connected_graphs = {}
 			-- in general, to avoid issues with stale graph state,
