@@ -152,10 +152,44 @@ return {
 
 		-- insert a new vertex into the vertex space.
 		-- returns true if inserted, false if it already exists.
-		local addvertex = function(vertex)
-			local hash = hasher(vertex)
-			if maptograph[hash] ~= nil then return false end
-			error("vertexspace.addvertex() vertex new, stub!")
+		local addvertex = function(addedvertex)
+			-- don't do anything if this vertex already exists.
+			if maptograph(addedvertex) ~= nil then return false end
+
+			visited_set = {}
+			local successors = successor(addedvertex)
+
+			local vertexhash = hasher(addedvertex)
+
+			local connected_graphs = {}
+			-- in general, to avoid issues with stale graph state,
+			-- where possible we just recalculate from scratch the complete graph.
+			-- however, as an optimisation, if all successor vertexes belong to the same graph
+			-- (that is, the new vertex is connected to only that graph on all "sides"),
+			-- it is obvious that the vertex will become part of that graph.
+			-- so, two special cases:
+			-- * no successors, vertex is "floating" and becomes it's own graph.
+			-- * all successors belong to the same network, vertex is simply added to that graph.
+
+			-- in a mixed scenario, a search is started at the new vertex.
+			-- any existed graphs touched by the search are removed,
+			-- under the assumption that if they are still reachable,
+			-- then they will become part of the new graph.
+			local samecase, graphid = comparesamegraph(successors)
+			if samecase then
+				insertintograph(graph, addedvertex, vertexhash)
+				return true
+			end
+
+			-- start the search at the originating vertex.
+			-- when the search is complete, search.getvisited() is used to retrieve the entire visited set;
+			-- as this is a map from hashes to vertexes, that set is simply assigned as the new vertex set.
+			local searchcallbacks = {}
+			local search = newsearch(addedvertex, callbacks, {})
+			-- incomplete...
+			error("vertexspace.addvertex() WIP!")
+
+			return true
 		end
 
 		return interface
