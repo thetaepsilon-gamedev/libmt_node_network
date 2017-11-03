@@ -57,6 +57,7 @@ return {
 	--	testvertex: additional test stage when frontier is popped from queue.
 	--	if it returns false the frontier vertex is simply discarded.
 	--	visitor: called when vertex is added to the visited list.
+	--		gets passed the vertex and it's hash.
 	--	debugger: called with trace point messages if it exists.
 	--	markfrontier: called when a vertex is added as a frontier.
 	--	finished: called when the graph has been exhaustively mapped.
@@ -169,7 +170,7 @@ return {
 					end
 					-- mark this node visited
 					self.vertexcount = self.vertexcount + 1
-					visitor(frontier)
+					visitor(frontier, frontier_hash)
 					self.visited[frontier_hash] = frontier
 					increment(stats, "visited_count")
 				else
