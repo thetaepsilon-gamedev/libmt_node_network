@@ -90,6 +90,12 @@ return {
 		--print(stub)
 		debugger(dname_new..".entry")
 
+		local c_onappend = callback_or_missing(callbacks, "graph_append", stub)
+		local c_onnewgraph = callback_or_missing(callbacks, "graph_new", stub)
+		local c_graph_delete_pre = callback_or_missing(callbacks, "graph_delete_pre", stub)
+		local c_graph_delete_post = callback_or_missing(callbacks, "graph_delete_post", stub)
+		local c_graph_assign = callback_or_missing(callbacks, "graph_assign", stub)
+
 		-- vertex-to-graph mapping.
 		-- keys are determined by the hasher function.
 		local maptograph = {}
@@ -118,16 +124,21 @@ return {
 			end
 			maptograph[hash] = graphid
 			graphs[graphid][hash] = vertex
-			-- TODO here: vertex insertion callbacks
+			c_onappend(vertex, hash, graphid)
 		end
+
+
 
 		-- internal function to delete a given graph ID.
 		-- takes care of emptying each vertex from the mapping,
 		-- before removing the graph set itself.
 		local deletegraph = function(graphid)
 			local assert = mkassert("deletegraph")
-			-- TODO: pre-delete callback
-			for hash, vertex in pairs(graphs[graphid]) do
+			local oldgraph = graphs[graphid]
+			assert(oldgraph ~= nil, "non-existant graph", { graphid=graphid })
+
+			c_graph_delete_pre(graphid, oldgraph)
+			for hash, vertex in pairs() do
 				-- mapping should point each vertex in this graph to this graphid.
 				-- if not, something blew up.
 				local actual = maptograph[hash]
@@ -137,15 +148,17 @@ return {
 			end
 			-- now the mappings are gone but the graph set is still stored.
 			-- remove that from the graphs table and it's completely gone.
-			local oldgraph = graphs[graphid]
 			graphs[graphid] = nil
-			-- TODO: post-delete callback with oldgraph
+			c_graph_delete_post(graphid)
 		end
+
+
 
 		-- allocates a new graph ID.
 		local newgraph = function()
 			local newgraph = nextfree
 			nextfree = newgraph + 1
+			c_onnewgraph(graphid)
 			return newgraph
 		end
 
@@ -232,7 +245,6 @@ return {
 			-- as this is a map from hashes to vertexes, that set is simply assigned as the new vertex set.
 			local searchcallbacks = {}
 			-- destroy any old graphs encountered.
-			-- TODO: invocation of vertexspace callbacks here also
 			searchcallbacks.visitor = function(vertex, vertexhash)
 				local graphid = whichgraph(vertexhash)
 				if graphid ~= nil then deletegraph(graphid) end
@@ -246,7 +258,7 @@ return {
 			local graphset = search.getvisited()
 			assert(graphset ~= nil, "graph set should be obtainable when search completes")
 			graphs[graphid] = graphset
-			-- TODO: post-graph setup callbacks
+			c_graph_assign(graphid, graphset)
 
 			return true
 		end
