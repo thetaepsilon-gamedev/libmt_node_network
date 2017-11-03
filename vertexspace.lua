@@ -60,7 +60,7 @@ The callbacks for graph creation/destruction etc. should be comfortable dealing 
 potentially they must be able to deal with a complete destruction and recalculation of all graphs every time any vertex is added/removed.
 ]]
 local dname_new = "vertexspace.new"
-local newbfsearch = _mod.modules.bfmap.new
+local newbfmap = _mod.modules.bfmap.new
 local check = _mod.util.mkfnexploder(dname_new)
 local mkassert_plain = _mod.util.mkassert
 local mkassert = function(fname)
