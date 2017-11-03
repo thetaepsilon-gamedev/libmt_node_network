@@ -16,6 +16,9 @@ _mod.logger = logger
 
 dofile(_mod.modpath.."external-dependencies.lua")
 
+-- misc internal helpers
+dofile(dir.."util.lua")
+
 local bfmap_deps = {
 	new = {
 		queue = _mod.new.queue,
