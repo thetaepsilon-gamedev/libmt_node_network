@@ -60,7 +60,7 @@ The callbacks for graph creation/destruction etc. should be comfortable dealing 
 potentially they must be able to deal with a complete destruction and recalculation of all graphs every time any vertex is added/removed.
 ]]
 local dname_new = "vertexspace.new()"
-local newsearch = _mod.modules.bfmap.new
+local newbfsearch = _mod.modules.bfmap.new
 local check = _mod.util.mkfnexploder(dname_new)
 
 return {
@@ -143,6 +143,11 @@ return {
 			local resultid
 			if result then resultid = graphs[1] end
 			return result, resultid
+		end
+
+		-- helper function which "curries" (pre-applies) the hasher and successor functions to bfmap.
+		local newsearch = function(initialvertex, callbacks, localopts)
+			return newbfmap(initialvertex, successor, hasher, callbacks, {})
 		end
 
 		-- insert a new vertex into the vertex space.
