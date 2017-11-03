@@ -181,6 +181,15 @@ return {
 				return true
 			end,
 			stats = function() return self.stats end,
+			-- get visited vertexes as one table at the end,
+			-- in the same form as stored internally -
+			-- keys are hashes and values are vertex references.
+			-- used in the vertex space code where it becomes the set of vertexes in a graph.
+			-- returns nil if the search is not finished.
+			getvisited = function()
+				if not self.finished then return nil end
+				return self.visited
+			end
 		}
 		return interface
 	end
