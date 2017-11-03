@@ -10,10 +10,13 @@ _mod.util.node_hasher = node_hasher
 -- if the key is neither a function nor nil then an error is thrown.
 local mkfnexploder = _mod.util.mkfnexploder
 local mk_callback_or_missing = function(caller)
+	--local dname = "callback_or_missing"
 	local checkfn = mkfnexploder(caller)
 	return function(t, key, default)
 		local fn = t[key]
+		--print(dname.." t="..tostring(t).." key="..tostring(key).." result="..tostring(fn))
 		if fn ~= nil then
+			--print(dname.." invoking checkfn")
 			return checkfn(fn, "callback "..key)
 		else
 			return default

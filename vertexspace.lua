@@ -59,7 +59,7 @@ This is in general to prevent stale state issues.
 The callbacks for graph creation/destruction etc. should be comfortable dealing with this;
 potentially they must be able to deal with a complete destruction and recalculation of all graphs every time any vertex is added/removed.
 ]]
-local dname_new = "vertexspace.new()"
+local dname_new = "vertexspace.new"
 local newbfsearch = _mod.modules.bfmap.new
 local check = _mod.util.mkfnexploder(dname_new)
 local mkassert_plain = _mod.util.mkassert
@@ -67,6 +67,9 @@ local mkassert = function(fname)
 	return mkassert_plain("vertexspace."..fname.."() internal inconsistency")
 end
 local table_or_missing = _mod.util.mk_table_or_missing(dname_new)
+local callback_or_missing = _mod.util.mk_callback_or_missing(dname_new)
+
+local stub = function() end
 
 return {
 	-- impl contains functions that handle vertex-type-specific functionality.
@@ -80,7 +83,12 @@ return {
 			error(dname_new.." no impl table passed for vertex functions")
 		end
 		callbacks = table_or_missing(callbacks, "callbacks")
-		callbacks = table_or_missing(opts, "opts")
+		opts = table_or_missing(opts, "opts")
+
+		local debugger = callback_or_missing(callbacks, "debugger", stub)
+		--print(debugger)
+		--print(stub)
+		debugger(dname_new..".entry")
 
 		-- vertex-to-graph mapping.
 		-- keys are determined by the hasher function.
