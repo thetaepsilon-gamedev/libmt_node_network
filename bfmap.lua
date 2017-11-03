@@ -141,7 +141,7 @@ return {
 
 				-- remove this node from pending frontiers if it's allowed
 				local frontier_hash = hasher(frontier)
-				self.pending[frontier_hash] = false
+				self.pending[frontier_hash] = nil
 
 				if testvertex(frontier) then
 					debugger(dname.."frontier passed testvertex")
