@@ -38,7 +38,7 @@ local checktable = function(tbl, label)
 	local t = type(tbl)
 	if t == "nil" then
 		result = {}
-	elseif t ~= "table"
+	elseif t ~= "table" then
 		error(dname_new..label.." table expected to be either a table or nil, got "..t)
 	end
 	return result
