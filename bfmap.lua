@@ -6,12 +6,7 @@ local factory = function(deps)
 -- otherwise though this is as generic as the algorithm example found on wikipedia.
 local newqueue = deps.new.queue
 local increment = deps.increment_counter
-
-local checkfn = function(f, label, callername)
-	if type(f) ~= "function" then
-		error(callername..label.." expected to be a function, got "..tostring(f))
-	end
-end
+local mkfnexploder = deps.mkfnexploder
 
 local dname_new = "bfmap.new() "
 -- helpers for callbacks in the code below.
@@ -43,6 +38,7 @@ local checktable = function(tbl, label)
 	end
 	return result
 end
+local checkfn = mkfnexploder(dname_new)
 return {
 	-- set up the initial state of the search.
 	-- requires an initial graph vertex and a successor function.
@@ -71,8 +67,8 @@ return {
 		-- note that queues reject nil items,
 		-- so if initial is nil the queue will be empty.
 		-- this gives us the behaviour for advance() as stated above.
-		checkfn(successor, "successor", dname_new)
-		checkfn(hasher, "hasher", dname_new)
+		checkfn(successor, "successor")
+		checkfn(hasher, "hasher")
 
 		callbacks = checktable(callbacks, "callbacks")
 		opts = checktable(opts, "opts")
