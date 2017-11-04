@@ -41,3 +41,8 @@ local mk_table_or_missing = function(caller)
 	end
 end
 _mod.util.mk_table_or_missing = mk_table_or_missing
+
+-- internal warning function - currently prints to console.
+_mod.util.warning = function(msg)
+	minetest.log("warning", msg)
+end

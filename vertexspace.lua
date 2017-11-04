@@ -68,6 +68,7 @@ local mkassert = function(fname)
 end
 local table_or_missing = _mod.util.mk_table_or_missing(dname_new)
 local callback_or_missing = _mod.util.mk_callback_or_missing(dname_new)
+local warn_console = _mod.util.warning
 
 local stub = function() end
 
@@ -86,9 +87,14 @@ return {
 		opts = table_or_missing(opts, "opts")
 
 		local debugger = callback_or_missing(callbacks, "debugger", stub)
+		local warn_caller = callback_or_missing(callbacks, "warning", stub)
 		--print(debugger)
 		--print(stub)
 		debugger(dname_new..".entry")
+		local warning = function(msg)
+			warn_console(msg)
+			warn_caller(msg)
+		end
 
 		local c_onappend = callback_or_missing(callbacks, "graph_append", stub)
 		local c_onnewgraph = callback_or_missing(callbacks, "graph_new", stub)
