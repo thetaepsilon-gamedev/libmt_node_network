@@ -266,7 +266,12 @@ return {
 			-- destroy any old graphs encountered.
 			searchcallbacks.visitor = function(vertex, vertexhash)
 				local graphid = whichgraph(vertexhash)
-				if graphid ~= nil then deletegraph(graphid) end
+				if graphid ~= nil then
+					deletegraph(graphid)
+					if not successor_check[vertexhash] then
+						warning("vertex found during search already belonged to a graph but wasn't a merged successor!", {hash=vertexhash, graph=graphid})
+					end
+				end
 				maptograph[vertexhash] = newgraphid
 			end
 			local search = newsearch(addedvertex, searchcallbacks, {})
