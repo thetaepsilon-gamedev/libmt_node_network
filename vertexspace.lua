@@ -227,6 +227,13 @@ return {
 
 			visited_set = {}
 			local successors = successor(addedvertex)
+			-- convert successors list into table with hashes as keys.
+			-- used within the visited callback below.
+			local successor_check = {}
+			for index, s in ipairs(successors) do
+				local hash = hasher(s)
+				successor_check[hash] = true
+			end
 
 			local connected_graphs = {}
 			-- in general, to avoid issues with stale graph state,
