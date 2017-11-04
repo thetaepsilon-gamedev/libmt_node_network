@@ -43,12 +43,13 @@ end
 _mod.util.mk_table_or_missing = mk_table_or_missing
 
 -- internal warning function - currently prints to console.
-_mod.util.warning = function(msg)
+local warn_console = function(msg)
 	minetest.log("warning", msg)
 end
+_mod.util.warning = warn_console
 
 -- formatter function for table data
-_mod.util.logformat = function(msg, data)
+local logformat = function(msg, data)
 	if data ~= nil then
 		for k, v in pairs(data) do
 			msg = msg.." "..tostring(k).."="..tostring(v)
@@ -56,3 +57,14 @@ _mod.util.logformat = function(msg, data)
 	end
 	return msg
 end
+_mod.util.logformat = logformat
+
+-- get a warning function which additionally prints to a caller-passed printer.
+local mkwarning = function(callername, extraprinter)
+	return function(msg, data)
+		local str = "["..callername.."] "..logformat(msg, data)
+		warn_console(str)
+		extraprinter(str)
+	end
+end
+_mod.util.mkwarning = mkwarning
