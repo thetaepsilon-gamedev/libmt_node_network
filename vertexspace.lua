@@ -191,7 +191,7 @@ return {
 			local hashes = {}
 			local graphs = {}
 			for index, vertex in ipairs(vertexes) do
-				hash = hasher(vertex)
+				local hash = hasher(vertex)
 				table.insert(hashes, hash)
 			end
 			for index, hash in ipairs(hashes) do
@@ -225,7 +225,7 @@ return {
 				return false
 			end
 
-			visited_set = {}
+			local visited_set = {}
 			local successors = successor(addedvertex)
 			-- convert successors list into table with hashes as keys.
 			-- used within the visited callback below.
