@@ -275,6 +275,24 @@ return {
 
 
 
+		-- removes a vertex from the space.
+		-- returns true if removed, false if it did not exist or wasn't tracked.
+		-- in the false case the graph will not be modified.
+		-- the set of successors prior to the vertex's removal must also be passed;
+		-- this is because the vertex has to have been removed before this is called,
+		-- so that it doesn't get re-added.
+		-- the removed vertex is specified by it's hash so that the internal tracking data can be updated.
+		local removevertex = function(hash, oldsuccessors)
+			local graphid = whichgraph(hash)
+			if graphid == nil then
+				return false
+			end
+
+			error("vertexspace.removevertex() stub!")
+		end
+
+
+
 		return interface
 	end,
 }
