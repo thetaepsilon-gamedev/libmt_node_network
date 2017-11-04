@@ -79,7 +79,13 @@ return {
 	--		references to the same vertex must hash to the same value.
 	--	successor: also like in bfmap,
 	--		returns references to the vertexes connected to the given vertex.
-	new = function(impl, callbacks, opts)
+	new = function(impl, callbacks, opts, label)
+		if label ~= nil then
+			label = " "..tostring(label)
+		else
+			label = ""
+		end
+
 		if type(impl) ~= "table" then
 			error(dname_new.." no impl table passed for vertex functions")
 		end
@@ -88,7 +94,7 @@ return {
 
 		local debugger = callback_or_missing(callbacks, "debugger", stub)
 		local warn_caller = callback_or_missing(callbacks, "warning", stub)
-		local warning = mkwarning("vertexspace", warn_caller)
+		local warning = mkwarning("vertexspace"..label, warn_caller)
 		--print(debugger)
 		--print(stub)
 		debugger(dname_new..".entry")
