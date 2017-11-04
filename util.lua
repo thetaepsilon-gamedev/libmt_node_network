@@ -46,3 +46,13 @@ _mod.util.mk_table_or_missing = mk_table_or_missing
 _mod.util.warning = function(msg)
 	minetest.log("warning", msg)
 end
+
+-- formatter function for table data
+_mod.util.logformat = function(msg, data)
+	if data ~= nil then
+		for k, v in pairs(data) do
+			msg = msg.." "..tostring(k).."="..tostring(v)
+		end
+	end
+	return msg
+end
