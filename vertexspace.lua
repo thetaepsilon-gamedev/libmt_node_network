@@ -216,6 +216,16 @@ return {
 			return newbfmap(initialvertex, successor, hasher, callbacks, {})
 		end
 
+		-- convert successors list into table with hashes as keys.
+		-- used within the visitor callbacks below.
+		local successormap = function(successors)
+			local successor_check = {}
+			for index, s in ipairs(successors) do
+				local hash = hasher(s)
+				successor_check[hash] = true
+			end
+			return successor_check
+		end
 
 
 		-- insert a new vertex into the vertex space.
@@ -233,13 +243,7 @@ return {
 
 			local visited_set = {}
 			local successors = successor(addedvertex)
-			-- convert successors list into table with hashes as keys.
-			-- used within the visited callback below.
-			local successor_check = {}
-			for index, s in ipairs(successors) do
-				local hash = hasher(s)
-				successor_check[hash] = true
-			end
+			local successor_check = successormap(successors)
 
 			local connected_graphs = {}
 			-- in general, to avoid issues with stale graph state,
