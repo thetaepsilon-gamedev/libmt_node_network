@@ -73,7 +73,7 @@ _mod.util.mkwarning = mkwarning
 -- used if a table is expected to be modified,
 -- but the original also needs preserving.
 local shallowcopy = function(t)
-	local result
+	local result = {}
 	for k, v in pairs(t) do result[k] = v end
 	return result
 end
