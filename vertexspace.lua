@@ -310,12 +310,66 @@ return {
 		-- so that it doesn't get re-added.
 		-- the removed vertex is specified by it's hash so that the internal tracking data can be updated.
 		local removevertex = function(hash, oldsuccessors)
-			local graphid = whichgraph(hash)
-			if graphid == nil then
+			local oldgraphid = whichgraph(hash)
+			if oldgraphid == nil then
 				return false
 			end
 
-			error("vertexspace.removevertex() stub!")
+			-- assumption that graphid for the removed vertex is already obtained
+
+			-- to preserve the existing graph where possible,
+			-- run a search from the first successor,
+			-- where any unexpected graphs are logged instead of immediately deleted,
+			-- and have the visitor callback clear any matching vertexes from the remaining successors.
+			-- *if* after this first search all successors are cleared,
+			-- then the graph is still intact and we just take that vertex off,
+			-- but any foreign graphs encountered above trigger a warning.
+			-- otherwise, the old graph is deleted,
+			-- the visited set of the search is assigned to a new graph,
+			-- and the remaining successors spawn new searches until none remain.
+
+			-- find the first successor (if any) that is on the same network as the removed one.
+			-- if one is found, start a search from there to check if the other successors are still reachable.
+			-- if so, then that graph remains intact and we simply remove the entry for that node from the tracking data.
+			local saveid = nil
+			local savevertex = nil
+			for hash, vertex in pairs(successor_map) do
+				local theirid = whichgraph(hash)
+				if theirid == oldgraphid then
+					saveid = theirid
+					savevertex = vertex
+					break
+				end
+			end
+
+			local foriegn_graphs = {}
+			if saveid ~= nil then
+				-- clear out successors if they're found during the search,
+				-- and make a note of any foreign graphs encountered.
+				local clear_successor_visitor = function(vertex, vertexhash)
+					local currentid = whichgraph(vertexhash)
+					if (currentid ~= nil) and (currentid ~= saveid) then
+						foreign_graphs[currentid] = true
+					end
+					successor_map[vertexhash] = nil
+				end
+				local callbacks = { visitor = clear_successor_visitor }
+				local search = newsearch(savevertex, callbacks, {})
+				while search.advance() do end
+
+				-- if no successors remain, we're done.
+				-- for now, warn about any encountered foriegn graphs here,
+				-- then remove that entry.
+				for fid, _ in pairs(foreign_graphs) do
+					warning("foreign graph found during removal search", { expectedgraph=saveid, actualgraph=fid })
+				end
+				if table_get_single(successor_map) == nil then
+					delete_vertex_single(oldhash, oldgraphid)
+					return true
+				end
+			end
+
+			error("vertexspace.removevertex incomplete!")
 		end
 
 
