@@ -438,10 +438,11 @@ return {
 				local newgraphid = newgraph()
 				local visitor = create_search_visitor(newgraphid, successor_map, {})
 				local callbacks = { visitor = visitor }
-				local search = newsearch(savevertex, callbacks, {})
+				local search = newsearch(vertex, callbacks, {})
 				while search.advance() do end
 				local graphset = search.getvisited()
 				assert(graphset[oldhash] == nil, "old vertex should not appear in a remainder search")
+				assert(successor_map[hash] == nil, "successor should have been covered by search")
 				graph_assign(newgraphid, graphset)
 			end
 
