@@ -91,6 +91,7 @@ local mkmetadelayer = function(pos)
 		set_string = sset,
 		flush = flush_all,
 	}
+	return interface
 end
 
 
