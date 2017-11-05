@@ -267,7 +267,10 @@ return {
 				local graphid = whichgraph(vertexhash)
 				if graphid ~= nil then
 					deletegraph(graphid)
-					if warnanyway or (successor_check[vertexhash] ~= targetgraphid) then
+					local isnotsuccessor = (successor_check[vertexhash] == nil)
+					-- check the vertex for foreign-ness if it's either not a successor or we've been asked to do so anyway.
+					local shouldcheck = isnotsuccessor or warnanyway
+					if shouldcheck and (graphid ~= targetgraphid) then
 						warning("vertex found during search already belonged to a graph but wasn't a merged successor!", {hash=vertexhash, graph=graphid})
 					end
 				end
