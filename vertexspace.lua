@@ -358,7 +358,7 @@ return {
 				end
 			end
 
-			local foriegn_graphs = {}
+			local foreign_graphs = {}
 			if saveid ~= nil then
 				-- clear out successors if they're found during the search,
 				-- and make a note of any foreign graphs encountered.
