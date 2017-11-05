@@ -323,7 +323,6 @@ return {
 			c_exit()
 			return true
 		end
-		interface.addvertex = addvertex
 
 
 
@@ -437,9 +436,15 @@ return {
 			c_exit()
 			return true
 		end
-		interface.removevertex = removevertex
 
-
+		interface.addvertex = function(...)
+			local result = addvertex(...)
+			return result
+		end
+		interface.removevertex = function(...)
+			local result = removevertex(...)
+			return result
+		end
 
 		return interface
 	end,
