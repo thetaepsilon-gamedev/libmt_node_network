@@ -241,7 +241,7 @@ return {
 			local successor_check = {}
 			for index, s in ipairs(successors) do
 				local hash = hasher(s)
-				successor_check[hash] = true
+				successor_check[hash] = s
 			end
 			return successor_check
 		end
@@ -297,7 +297,7 @@ return {
 				local graphid = whichgraph(vertexhash)
 				if graphid ~= nil then
 					deletegraph(graphid)
-					if not successor_check[vertexhash] then
+					if successor_check[vertexhash] == nil then
 						warning("vertex found during search already belonged to a graph but wasn't a merged successor!", {hash=vertexhash, graph=graphid})
 					end
 				end
@@ -331,8 +331,6 @@ return {
 			if oldgraphid == nil then
 				return false
 			end
-
-			-- assumption that graphid for the removed vertex is already obtained
 
 			-- to preserve the existing graph where possible,
 			-- run a search from the first successor,
