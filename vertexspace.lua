@@ -1,50 +1,10 @@
 --[[
-Please read all of this before exploring the code.
-It's long, but that's because it's a tricky concept to get around at first.
-
 A vertex space is an abstract set of vertexes.
 Within the vertex space, these vertexes may be grouped into connected graphs.
 A vertex is at any time a member of exactly one graph;
 "floating" vertexes not connected to anything become their own graph.
 A vertex space as an object supports adding and removing of vertex references,
 and obtaining a handle to the graph a vertex reference belongs to.
-
-Adding a new vertex causes it's successors to be examined,
-by calling the successor function on it.
-If the vertex has no successors, then this vertex is "floating on it's own",
-and a new graph is created to contain this isolated vertex.
-
-Otherwise, each of these successors is checked to see if it is already a part of a graph.
-If the successors all name a single unique graph,
-then the original vertex is simply added to the vertex set of that graph.
-If there are multiple graphs referenced by the successors connected to the original vertex,
-then the new vertex effectively constructs a bridge between those graphs;
-one of the graphs is picked to have the others merged into,
-then the original vertex is added to the merged network.
-
-It is also possible that the successor vertexes also do not belong to a tracked graph yet.
-After the above consideration is applied,
-any vertex that is NOT part of an existing graph spawns a search to map out potential new graph segments.
-It is assumed that the graph has not been modified without notifying the vertex space,
-therefore each explored successor graph does NOT check any vertexes that it comes across to see if they also already belong to a graph.
-After processing one successor's graph,
-any of the successors now in the graph's visited set
-(that is, that successor is *reachable* from a successor mapped before it) are skipped.
-These graphs are then merged with any others connected to the initiating vertex as above.
-
-For removing a vertex, prior to it's actual removal,
-again it's successors are examined.
-If the vertex has no successors then it is simply removed from it's containing graph;
-as by the time this can happen the graph will only have that one vertex left,
-this will trigger the deletion of the now-empty graph.
-
-Otherwise, one of the successors is picked and the search algorithm is run on it.
-When the search has completed, the other successors are compared against the search's visited set.
-If any of the successors are NOT contained in the visited set,
-then they are no longer reachable from the current graph and represent a completely disconnected section.
-Each candidate successor then has the search algorithm ran on it and it's results inserted into a new graph;
-checking along the way to see if any of the new networks now include the candidate,
-until no candidates remain.
 
 It should be noted that in a sense the vertex space does not "own" the vertexes per se.
 The vertexes and the graphs they form exist anyway
@@ -346,6 +306,10 @@ return {
 			local searchcallbacks = {}
 
 			local opts = { ignore_foreign_successors = true }
+			-- the visitor helper deletes any graphs that is comes across.
+			-- while this might seem destructive,
+			-- if they are still connected then the contained vertexes will be re-added.
+			-- this effectively implements the graph merge behaviour.
 			searchcallbacks.visitor = create_search_visitor(newgraphid, successor_check, opts)
 			local search = newsearch(addedvertex, searchcallbacks, {})
 			-- then run search to completion
@@ -380,7 +344,8 @@ return {
 			end
 
 			-- unconditionally remove the tracking data for the old vertex up front.
-			-- this is to work better with callback sets that work differently with batch deletes vs single removes
+			-- this is to work better with callback sets that work differently with batch deletes vs single removes.
+			-- note also that this will automatically delete the graph if it's empty.
 			delete_vertex_single(oldvertex, oldhash, oldgraphid)
 
 			-- to preserve the existing graph where possible,
@@ -451,6 +416,10 @@ return {
 				graph_assign(nid, clobbered_graph)
 			end
 
+			-- while successors still remain that haven't been visited,
+			-- create a new graph and spawn a search for it from the next available successor.
+			-- the visitor helper clears successors out of the list if a search runs across one,
+			-- so that successor will not spawn another redundant search.
 			while true do
 				local hash, vertex = table_get_single(successor_map)
 				if hash == nil then break end
