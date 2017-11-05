@@ -104,6 +104,7 @@ return {
 		local c_graph_delete_pre = callback_or_missing(callbacks, "graph_delete_pre", stub)
 		local c_graph_delete_post = callback_or_missing(callbacks, "graph_delete_post", stub)
 		local c_graph_assign = callback_or_missing(callbacks, "graph_assign", stub)
+		local c_vertex_delete_single = callback_or_missing(callbacks, "graph_remove_single", stub)
 
 		-- vertex-to-graph mapping.
 		-- keys are determined by the hasher function.
@@ -164,8 +165,6 @@ return {
 			return oldgraph
 		end
 
-
-
 		-- allocates a new graph ID.
 		local newgraph = function()
 			local newgraph = nextfree
@@ -178,6 +177,24 @@ return {
 		-- returns nil if the vertex belongs to no network.
 		local whichgraph = function(vertexhash)
 			return maptograph[vertexhash]
+		end
+
+		-- internal function to delete a single vertex from a graph.
+		-- does some sanity checking and then invokes the relevant callbacks.
+		local delete_vertex_single = function(vertex, hash, graphid)
+			local checkid = whichgraph(hash)
+			if checkid ~= graphid then
+				warning("specified graphid did not match requested for single deletion", {expectedid=checkid, requested=graphid, hash=hash})
+			end
+			graphid = checkid
+			maptograph[hash] = nil
+			local graph = graphs[graphid]
+			if graph[hash] == nil then
+				warning("hash did not exist exist in graph!?", { graphid=graphid, hash=hash })
+			else
+				graph[hash] = nil
+			end
+			c_vertex_delete_single(vertex, hash, graphid)
 		end
 
 		local comparebyvalue = function(array)
@@ -308,9 +325,9 @@ return {
 		-- the set of successors prior to the vertex's removal must also be passed;
 		-- this is because the vertex has to have been removed before this is called,
 		-- so that it doesn't get re-added.
-		-- the removed vertex is specified by it's hash so that the internal tracking data can be updated.
-		local removevertex = function(hash, oldsuccessors)
-			local oldgraphid = whichgraph(hash)
+		local removevertex = function(oldvertex, oldsuccessors)
+			local oldhash = hasher(vertex)
+			local oldgraphid = whichgraph(oldhash)
 			if oldgraphid == nil then
 				return false
 			end
@@ -364,7 +381,7 @@ return {
 					warning("foreign graph found during removal search", { expectedgraph=saveid, actualgraph=fid })
 				end
 				if table_get_single(successor_map) == nil then
-					delete_vertex_single(oldhash, oldgraphid)
+					delete_vertex_single(oldvertex, oldhash, oldgraphid)
 					return true
 				end
 			end
