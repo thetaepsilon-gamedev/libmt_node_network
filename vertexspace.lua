@@ -199,6 +199,13 @@ return {
 			c_vertex_delete_single(vertex, hash, graphid)
 		end
 
+		-- internal function to assign a graph set.
+		-- assigns the table then invokes the relevant callback.
+		local graph_assign = function(graphid, graphset)
+			graphs[graphid] = graphset
+			c_graph_assign(graphid, graphset)
+		end
+
 		local comparebyvalue = function(array)
 			local compare = nil
 			for index, item in ipairs(array) do
@@ -336,8 +343,7 @@ return {
 			-- when finished, the collected vertex set becomes the new graph.
 			local graphset = search.getvisited()
 			assert(graphset ~= nil, "graph set should be obtainable when search completes")
-			graphs[newgraphid] = graphset
-			c_graph_assign(newgraphid, graphset)
+			graph_assign(newgraphid, graphset)
 
 			return true
 		end
@@ -420,8 +426,7 @@ return {
 			if clobbered_graph ~= nil then
 				deletegraph(saveid)
 				local nid = newgraph()
-				graphs[nid] = clobbered_graph
-				c_graph_assign(nid, clobbered_graph)
+				graph_assign(nid, clobbered_graph)
 			end
 
 			-- not complete...
