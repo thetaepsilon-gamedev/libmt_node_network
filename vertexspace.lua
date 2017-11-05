@@ -70,6 +70,7 @@ local table_or_missing = _mod.util.mk_table_or_missing(dname_new)
 local callback_or_missing = _mod.util.mk_callback_or_missing(dname_new)
 local mkwarning = _mod.util.mkwarning
 local table_get_single = _mod.util.table_get_single
+local shallowcopy = _mod.util.shallowcopy
 
 local stub = function() end
 
@@ -246,6 +247,35 @@ return {
 			end
 			return successor_check
 		end
+
+
+
+		-- construct a visitor which:
+		--  destroys any graphs encountered, on the assumption they'll be re-added by the search.
+		--  causes warnings for encountered foreign graphs,
+		--    optionally ignoring this if expected of successors (used in addvertex).
+		--  assigns any found vertexes to the new graph.
+		--  clears out successors if found (used by removevertex).
+		local create_search_visitor = function(targetgraphid, successor_map, opts)
+			-- create a copy of the initial state of the successor map,
+			-- so we can cause warnings when a vertex belongs to a foriegn graph,
+			-- even as they are removed.
+			local successor_check = shallowcopy(successor_map)
+			local warnanyway = not opts.ignore_foreign_successors
+
+			return function(vertex, vertexhash)
+				local graphid = whichgraph(vertexhash)
+				if graphid ~= nil then
+					deletegraph(graphid)
+					if warnanyway or (successor_check[vertexhash] ~= targetgraphid) then
+						warning("vertex found during search already belonged to a graph but wasn't a merged successor!", {hash=vertexhash, graph=graphid})
+					end
+				end
+				successor_map[vertexhash] = nil
+				maptograph[vertexhash] = targetgraphid
+			end
+		end
+
 
 
 		-- insert a new vertex into the vertex space.
