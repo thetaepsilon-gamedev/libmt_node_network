@@ -323,17 +323,9 @@ return {
 			-- when the search is complete, search.getvisited() is used to retrieve the entire visited set;
 			-- as this is a map from hashes to vertexes, that set is simply assigned as the new vertex set.
 			local searchcallbacks = {}
-			-- destroy any old graphs encountered.
-			searchcallbacks.visitor = function(vertex, vertexhash)
-				local graphid = whichgraph(vertexhash)
-				if graphid ~= nil then
-					deletegraph(graphid)
-					if successor_check[vertexhash] == nil then
-						warning("vertex found during search already belonged to a graph but wasn't a merged successor!", {hash=vertexhash, graph=graphid})
-					end
-				end
-				maptograph[vertexhash] = newgraphid
-			end
+
+			local opts = { ignore_foreign_successors = true }
+			searchcallbacks.visitor = create_search_visitor(newgraphid, successor_check, opts)
 			local search = newsearch(addedvertex, searchcallbacks, {})
 			-- then run search to completion
 			while search.advance() do end
