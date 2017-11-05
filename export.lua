@@ -4,5 +4,6 @@ return {
 	vertexspace = _mod.modules.vertexspace,
 	util = {
 		node_hasher = _mod.util.node_hasher,
-	}
+	},
+	worldcache = _mod.modules.worldcache,
 }
