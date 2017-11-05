@@ -160,6 +160,8 @@ return {
 			-- remove that from the graphs table and it's completely gone.
 			graphs[graphid] = nil
 			c_graph_delete_post(graphid)
+
+			return oldgraph
 		end
 
 
