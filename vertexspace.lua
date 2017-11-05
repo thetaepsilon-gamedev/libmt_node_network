@@ -359,6 +359,7 @@ return {
 		-- this is because the vertex has to have been removed before this is called,
 		-- so that it doesn't get re-added.
 		local removevertex = function(oldvertex, oldsuccessors)
+			local assert = mkassert("removevertex")
 			local oldhash = hasher(oldvertex)
 			local oldgraphid = whichgraph(oldhash)
 			if oldgraphid == nil then
@@ -419,6 +420,7 @@ return {
 				else
 					-- save the found graph for the code below
 					clobbered_graph = search.getvisited()
+					assert(clobbered_graph[oldhash] == nil, "old vertex should not appear in connectivity search")
 				end
 			end
 
@@ -439,6 +441,7 @@ return {
 				local search = newsearch(savevertex, callbacks, {})
 				while search.advance() do end
 				local graphset = search.getvisited()
+				assert(graphset[oldhash] == nil, "old vertex should not appear in a remainder search")
 				graph_assign(newgraphid, graphset)
 			end
 
