@@ -348,6 +348,7 @@ return {
 			-- if so, then that graph remains intact and we simply remove the entry for that node from the tracking data.
 			local saveid = nil
 			local savevertex = nil
+			local successor_map = successormap(oldsuccessors)
 			for hash, vertex in pairs(successor_map) do
 				local theirid = whichgraph(hash)
 				if theirid == oldgraphid then
