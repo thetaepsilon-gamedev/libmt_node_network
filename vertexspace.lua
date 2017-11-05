@@ -430,9 +430,6 @@ return {
 				graph_assign(nid, clobbered_graph)
 			end
 
-			-- not complete...
-			error("WIP")
-
 			while true do
 				local hash, vertex = table_get_single(successor_map)
 				if hash == nil then break end
