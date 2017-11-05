@@ -360,6 +360,7 @@ return {
 			end
 
 			local foreign_graphs = {}
+			local clobbered_graph = nil
 			if saveid ~= nil then
 				-- clear out successors if they're found during the search,
 				-- and make a note of any foreign graphs encountered.
@@ -383,10 +384,21 @@ return {
 				if table_get_single(successor_map) == nil then
 					delete_vertex_single(oldvertex, oldhash, oldgraphid)
 					return true
+				else
+					-- save the found graph for the code below
+					clobbered_graph = search.getvisited()
 				end
 			end
 
-			error("vertexspace.removevertex incomplete!")
+			-- if we get this far, then entries remain in the successor map that haven't been covered.
+			-- spawn searches at each remaining successor until they're all covered.
+			if clobbered_graph ~= nil then
+				deletegraph(saveid)
+				local nid = newgraph()
+				graphs[nid] = clobbered_graph
+				c_graph_assign(nid, clobbered_graph)
+			end
+			error("WIP")
 		end
 		interface.removevertex = removevertex
 
