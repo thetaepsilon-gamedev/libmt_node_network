@@ -326,7 +326,7 @@ return {
 		-- this is because the vertex has to have been removed before this is called,
 		-- so that it doesn't get re-added.
 		local removevertex = function(oldvertex, oldsuccessors)
-			local oldhash = hasher(vertex)
+			local oldhash = hasher(oldvertex)
 			local oldgraphid = whichgraph(oldhash)
 			if oldgraphid == nil then
 				return false
