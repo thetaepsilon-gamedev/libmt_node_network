@@ -431,7 +431,7 @@ return {
 				local hash, vertex = table_get_single(successor_map)
 				if hash == nil then break end
 				local newgraphid = newgraph()
-				local visitor = nil
+				local visitor = create_search_visitor(newgraphid, successor_map, {})
 				local callbacks = { visitor = visitor }
 				local search = newsearch(savevertex, callbacks, {})
 				while search.advance() do end
