@@ -259,7 +259,6 @@ return {
 		-- insert a new vertex into the vertex space.
 		-- returns true if inserted, false if it already exists.
 		local addvertex = function(addedvertex)
-			c_enter()
 			local fname="vertexspace.addvertex"
 			debugger(fname..".entry")
 			local assert = mkassert("addvertex")
@@ -267,7 +266,6 @@ return {
 			-- don't do anything if this vertex already exists.
 			if whichgraph(vertexhash) ~= nil then
 				debugger(fname..".duplicateinsert", {hash=vertexhash})
-				c_exit()
 				return false
 			end
 
@@ -294,7 +292,6 @@ return {
 				local samecase, graphid = comparesamegraph(successors)
 				if samecase then
 					insertintograph(graphid, addedvertex, vertexhash)
-					c_exit()
 					return true
 				end
 			end
@@ -320,7 +317,6 @@ return {
 			assert(graphset ~= nil, "graph set should be obtainable when search completes")
 			graph_assign(newgraphid, graphset)
 
-			c_exit()
 			return true
 		end
 
@@ -333,12 +329,10 @@ return {
 		-- this is because the vertex has to have been removed before this is called,
 		-- so that it doesn't get re-added.
 		local removevertex = function(oldvertex, oldsuccessors)
-			c_enter()
 			local assert = mkassert("removevertex")
 			local oldhash = hasher(oldvertex)
 			local oldgraphid = whichgraph(oldhash)
 			if oldgraphid == nil then
-				c_exit()
 				return false
 			end
 
@@ -398,7 +392,6 @@ return {
 					warning("foreign graph found during removal search", { expectedgraph=saveid, actualgraph=fid })
 				end
 				if table_get_single(successor_map) == nil then
-					c_exit()
 					return true
 				else
 					-- save the found graph for the code below
@@ -433,16 +426,19 @@ return {
 				graph_assign(newgraphid, graphset)
 			end
 
-			c_exit()
 			return true
 		end
 
 		interface.addvertex = function(...)
+			c_enter()
 			local result = addvertex(...)
+			c_exit()
 			return result
 		end
 		interface.removevertex = function(...)
+			c_enter()
 			local result = removevertex(...)
+			c_exit()
 			return result
 		end
 
