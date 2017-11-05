@@ -374,6 +374,10 @@ return {
 				return false
 			end
 
+			-- unconditionally remove the tracking data for the old vertex up front.
+			-- this is to work better with callback sets that work differently with batch deletes vs single removes
+			delete_vertex_single(oldvertex, oldhash, oldgraphid)
+
 			-- to preserve the existing graph where possible,
 			-- run a search from the first successor,
 			-- where any unexpected graphs are logged instead of immediately deleted,
@@ -423,7 +427,6 @@ return {
 					warning("foreign graph found during removal search", { expectedgraph=saveid, actualgraph=fid })
 				end
 				if table_get_single(successor_map) == nil then
-					delete_vertex_single(oldvertex, oldhash, oldgraphid)
 					c_exit()
 					return true
 				else
