@@ -32,7 +32,7 @@ end
 -- values in the store are indexed by the hash instead of the key directly,
 -- but the underlying read/write callbacks still see the unhashed key.
 -- returns the store instead of taking it, and also returns the mapping table.
-local mkcache = function(read, write, hasher)
+local mkcachehashed = function(read, write, hasher)
 	local store = {}
 	local maptokey = {}
 	local get = function(key)
