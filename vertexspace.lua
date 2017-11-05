@@ -199,6 +199,11 @@ return {
 				graph[hash] = nil
 			end
 			c_vertex_delete_single(vertex, hash, graphid)
+			-- check if the graph is empty now - if so, remove it.
+			if table_get_single(graph) == nil then
+				graphs[graphid] = nil
+				c_graph_delete_post(graphid)
+			end
 		end
 
 		-- internal function to assign a graph set.
@@ -403,6 +408,8 @@ return {
 					break
 				end
 			end
+			-- beyond this point, DO NOT USE oldgraphid as we must assume it's graph is gone.
+			-- if it still exists it will be in saveid.
 
 			local foreign_graphs = {}
 			local clobbered_graph = nil
