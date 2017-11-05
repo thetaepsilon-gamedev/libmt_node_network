@@ -34,6 +34,8 @@ _mod.modules.bfmap = bfmap
 
 _mod.modules.vertexspace = dofile(dir.."vertexspace.lua")
 
+_mod.modules.worldcache = dofile(dir.."worldcache.lua")
+
 local networkspace_deps = {
 	logger = logger
 }
