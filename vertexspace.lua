@@ -202,6 +202,7 @@ return {
 		-- internal function to assign a graph set.
 		-- assigns the table then invokes the relevant callback.
 		local graph_assign = function(graphid, graphset)
+			if type(graphset) ~= "table" then error("vertexspace graph_assign() graph must be a table!") end
 			graphs[graphid] = graphset
 			c_graph_assign(graphid, graphset)
 		end
