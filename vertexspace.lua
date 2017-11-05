@@ -69,6 +69,7 @@ end
 local table_or_missing = _mod.util.mk_table_or_missing(dname_new)
 local callback_or_missing = _mod.util.mk_callback_or_missing(dname_new)
 local mkwarning = _mod.util.mkwarning
+local table_get_single = _mod.util.table_get_single
 
 local stub = function() end
 
