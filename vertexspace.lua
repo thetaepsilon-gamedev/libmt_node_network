@@ -440,7 +440,8 @@ return {
 				local callbacks = { visitor = visitor }
 				local search = newsearch(savevertex, callbacks, {})
 				while search.advance() do end
-				-- TODO: graph assign
+				local graphset = search.getvisited()
+				graph_assign(newgraphid, graphset)
 			end
 
 			return true
