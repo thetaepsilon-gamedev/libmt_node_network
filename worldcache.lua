@@ -52,7 +52,7 @@ local mkcachehashed = function(read, write, hasher)
 	end
 	local flush = function()
 		for h, v in pairs(store) do
-			local k = maptokey[hash]
+			local k = maptokey[h]
 			write(k, v)
 		end
 	end
@@ -98,7 +98,7 @@ end
 
 -- default "grid" implementation referring to the minetest world.
 local mkmtgrid = function()
-	grid = {}
+	local grid = {}
 	grid.get = function(pos)
 		return minetest.get_node(pos)
 	end
@@ -119,8 +119,42 @@ local newcache = function(rawgrid)
 	if rawgrid == nil then
 		rawgrid = mkmtgrid()
 	end
+	local grid = rawgrid
 	local hasher = grid.hasher
-	error("WIP!")
+	local metarefs = {}
+	local metaflushers = {}
+
+	local nget, nset, nflush = mkcachehashed(grid.get, grid.set, hasher)
+	-- isolate the meta ref's flush() function so that it can only be called via flushing this.
+	local getmetaraw = function(pos)
+		local m = grid.getmetaref(pos)
+		local flush = m.flush
+		m.flush = nil
+		return m, flush
+	end
+	local getmetaref = function(pos)
+		local hash = hasher(pos)
+		local m = metarefs[hash]
+		if m == nil then
+			local meta, flush = getmetaraw(pos)
+			metarefs[hash] = meta
+			metaflushers[hash] = flush
+			return meta
+		else
+			return m
+		end
+	end
+	local flush = function()
+		nflush()
+		for _, mflush in pairs(metaflushers) do mflush() end
+	end
+
+	return {
+		get = nget,
+		set = nset,
+		getmetaref = getmetaref,
+		flush = flush,
+	}
 end
 
 
