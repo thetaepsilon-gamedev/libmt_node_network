@@ -388,6 +388,7 @@ return {
 
 			error("vertexspace.removevertex incomplete!")
 		end
+		interface.removevertex = removevertex
 
 
 
