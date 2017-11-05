@@ -398,7 +398,22 @@ return {
 				graphs[nid] = clobbered_graph
 				c_graph_assign(nid, clobbered_graph)
 			end
+
+			-- not complete...
 			error("WIP")
+
+			while true do
+				local hash, vertex = table_get_single(successor_map)
+				if hash == nil then break end
+				local newgraphid = newgraph()
+				local visitor = nil
+				local callbacks = { visitor = visitor }
+				local search = newsearch(savevertex, callbacks, {})
+				while search.advance() do end
+				-- TODO: graph assign
+			end
+
+			return true
 		end
 		interface.removevertex = removevertex
 
