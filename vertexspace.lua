@@ -99,6 +99,15 @@ return {
 
 		local interface = {}
 
+		-- helper function to get a vertex's graph ID from it's hash.
+		-- returns nil if the vertex belongs to no network.
+		-- this mostly serves as a marker in code below -
+		-- read accesses are done through this function,
+		-- write accesses modify the maptograph table directly
+		local whichgraph = function(vertexhash)
+			return maptograph[vertexhash]
+		end
+
 
 
 		-- inner insert into actual graph by it's ID.
@@ -163,12 +172,6 @@ return {
 			nextfree = newgraph + 1
 			c_onnewgraph(newgraph)
 			return newgraph
-		end
-
-		-- helper function to get a vertex's graph ID from it's hash.
-		-- returns nil if the vertex belongs to no network.
-		local whichgraph = function(vertexhash)
-			return maptograph[vertexhash]
 		end
 
 		-- internal function to delete a single vertex from a graph.
