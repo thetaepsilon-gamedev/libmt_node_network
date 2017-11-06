@@ -118,6 +118,23 @@ return {
 			maptograph[hash] = newid
 		end
 
+		-- clears a single mapping entry.
+		-- ensures the mapping actually exists first.
+		-- optionally checks for an expected mapping ID first.
+		local assert_cme = mkassert("clear_map_entry")
+		local clear_map_entry = function(hash, checkid)
+			local assert = assert_cme
+			local existing = whichgraph(hash)
+			local valid
+			if checkid ~= nil then
+				valid = (existing == checkid)
+			else
+				valid = (existing ~= nil)
+			end
+			assert(valid, "mapping entry must already exist before clearing", {hash=hash})
+			maptograph[hash] = nil
+		end
+
 
 
 		-- inner insert into actual graph by it's ID.
@@ -156,10 +173,7 @@ return {
 			for hash, vertex in pairs(oldgraph) do
 				-- mapping should point each vertex in this graph to this graphid.
 				-- if not, something blew up.
-				local actual = maptograph[hash]
-				assert(actual == graphid, "vertexes in graph should map back to the same graph, currentgraph="..graphid.." hash="..hash.." actual="..actual)
-				-- otherwise, clear the mapping
-				maptograph[hash] = nil
+				clear_map_entry(hash, graphid)
 			end
 			-- now the mappings are gone but the graph set is still stored.
 			-- remove that from the graphs table and it's completely gone.
