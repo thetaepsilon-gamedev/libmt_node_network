@@ -136,11 +136,9 @@ return {
 		local assert_um = mkassert("updatemapping")
 		local updatemapping = function(graphset, graphid)
 			local assert = assert_um
+			assert(graphset ~= nil, "graph set expected to be non-nil")
 			for hash, vertex in pairs(graphset) do
-				assert(maptograph[hash] == nil, "should be no existing graph mapping for updated vertexes", {hash=hash})
-			end
-			for hash, vertex in pairs(graphset) do
-				maptograph[hash] = graphid
+				update_map_entry(hash, graphid)
 			end
 		end
 
