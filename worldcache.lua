@@ -116,9 +116,8 @@ end
 
 local noop = function() end
 local newcache = function(rawgrid)
-	-- in most cases, rawgrid should be omitted to refer to the global MT world.
 	if rawgrid == nil then
-		rawgrid = mkmtgrid()
+		error("worldcache.new() no grid specified!")
 	end
 	local grid = rawgrid
 	local hasher = grid.hasher
