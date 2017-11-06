@@ -108,6 +108,16 @@ return {
 			return maptograph[vertexhash]
 		end
 
+		-- update a single mapping entry.
+		-- sanity checks the entry by ensuring that there is no existing mapping first.
+		local assert_ume = mkassert("update_map_entry")
+		local update_map_entry = function(hash, newid)
+			local assert = assert_ume
+			local existing = whichgraph(hash)
+			assert(existing == nil, "mapping entry should not already exist", {hash=hash, existing=existing, attempted=newid})
+			maptograph[hash] = newid
+		end
+
 
 
 		-- inner insert into actual graph by it's ID.
