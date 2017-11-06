@@ -99,6 +99,8 @@ return {
 
 		local interface = {}
 
+
+
 		-- inner insert into actual graph by it's ID.
 		-- will calculate the hash if not provided.
 		-- also updates the mapping of vertex to graph.
@@ -113,6 +115,19 @@ return {
 			local graph = graphs[graphid]
 			graph[hash] = vertex
 			c_onappend(vertex, hash, graphid)
+		end
+
+		-- set up the graph mapping for a set of vertexes
+		-- does some sanity checking then updates all vertexes to map to the target graph id.
+		local assert_um = mkassert("updatemapping")
+		local updatemapping = function(graphset, graphid)
+			local assert = assert_um
+			for hash, vertex in pairs(graphset) do
+				assert(maptograph[hash] == nil, "should be no existing graph mapping for updated vertexes", {hash=hash})
+			end
+			for hash, vertex in pairs(graphset) do
+				maptograph[hash] = graphid
+			end
 		end
 
 
@@ -387,6 +402,8 @@ return {
 			if saveid ~= nil then
 				-- clear out successors if they're found during the search,
 				-- and make a note of any foreign graphs encountered.
+				-- we *do not* use the helper here as we defer setting up mapping entries,
+				-- until we know that the vertex set needs moving to a new graph.
 				local clear_successor_visitor = function(vertex, vertexhash)
 					local currentid = whichgraph(vertexhash)
 					if (currentid ~= nil) and (currentid ~= saveid) then
