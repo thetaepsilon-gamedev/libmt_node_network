@@ -61,6 +61,19 @@ return {
 		--print(stub)
 		debugger(dname_new..".entry")
 
+		-- callbacks which are invoked at various points during operations.
+		-- graph_append: called when a single vertex is added to a graph.
+		-- graph_new: called when a new, initially empty graph is created.
+		-- graph_delete_pre: called to batch delete entries from a graph prior to removal.
+		-- graph_delete_post: called when a graph is removed entirely.
+		--	note that either delete_pre or delete_single can precede this.
+		-- graph_assign: called to add a set of vertexes all at once.
+		-- graph_remove_single: called when just one vertex is removed from a graph,
+		--	and it is known that a recalculation is not necessary.
+		-- enter/exit are called whenever entry/exit happens with a vertexspace operation.
+		--	in particular, any calls to other callbacks or the successor/hasher function
+		--	are guaranteed to happen after begin() and before exit().
+		--	if any changes are to be made to a graph, they should be done inside exit().
 		local c_onappend = callback_or_missing(callbacks, "graph_append", stub)
 		local c_onnewgraph = callback_or_missing(callbacks, "graph_new", stub)
 		local c_graph_delete_pre = callback_or_missing(callbacks, "graph_delete_pre", stub)
