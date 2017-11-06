@@ -114,6 +114,7 @@ end
 
 
 
+local noop = function() end
 local newcache = function(rawgrid)
 	-- in most cases, rawgrid should be omitted to refer to the global MT world.
 	if rawgrid == nil then
@@ -129,7 +130,7 @@ local newcache = function(rawgrid)
 	local getmetaraw = function(pos)
 		local m = grid.getmetaref(pos)
 		local flush = m.flush
-		m.flush = nil
+		m.flush = noop
 		return m, flush
 	end
 	local getmetaref = function(pos)
