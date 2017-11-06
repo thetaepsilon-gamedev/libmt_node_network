@@ -436,6 +436,7 @@ return {
 				deletegraph(saveid)
 				local nid = newgraph()
 				graph_assign(nid, clobbered_graph)
+				updatemapping(clobbered_graph, nid)
 			end
 
 			-- while successors still remain that haven't been visited,
