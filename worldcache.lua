@@ -155,6 +155,7 @@ local newcache = function(rawgrid)
 		set = nset,
 		getmetaref = getmetaref,
 		flush = flush,
+		hasher = hasher,
 	}
 end
 
