@@ -125,12 +125,7 @@ return {
 		-- also updates the mapping of vertex to graph.
 		local insertintograph = function(graphid, vertex, hash)
 			if hash == nil then hash = hasher(vertex) end
-			-- vertex should not be added twice.
-			local oldgraph = maptograph[hash]
-			if oldgraph ~= nil then
-				error("vertexspace.insertintograph() internal inconsistency: vertex already exists graph="..graphid.." hash="..tostring(hash).." oldgraph="..oldgraph)
-			end
-			maptograph[hash] = graphid
+			update_map_entry(hash, graphid)
 			local graph = graphs[graphid]
 			graph[hash] = vertex
 			c_onappend(vertex, hash, graphid)
