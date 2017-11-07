@@ -31,6 +31,7 @@ local callback_or_missing = _mod.util.mk_callback_or_missing(dname_new)
 local mkwarning = _mod.util.mkwarning
 local table_get_single = _mod.util.table_get_single
 local shallowcopy = _mod.util.shallowcopy
+local mkprofiler = _mod.util.mkprofiler
 
 local stub = function() end
 
@@ -54,6 +55,7 @@ return {
 		callbacks = table_or_missing(callbacks, "callbacks")
 		opts = table_or_missing(opts, "opts")
 
+		local profiler = mkprofiler()
 		local debugger = callback_or_missing(callbacks, "debugger", stub)
 		local warn_caller = callback_or_missing(callbacks, "warning", stub)
 		local warning = mkwarning("vertexspace"..label, warn_caller)
@@ -82,6 +84,14 @@ return {
 		local c_vertex_delete_single = callback_or_missing(callbacks, "graph_remove_single", stub)
 		local c_enter = callback_or_missing(callbacks, "enter", stub)
 		local c_exit = callback_or_missing(callbacks, "exit", stub)
+
+		-- profiler helpers.
+		local startclock = function()
+			local current = profiler.create_root_event()
+			return current
+		end
+
+
 
 		-- vertex-to-graph mapping.
 		-- keys are determined by the hasher function.
@@ -491,6 +501,9 @@ return {
 			local result = removevertex(...)
 			c_exit()
 			return result
+		end
+		interface.get_profiler_data = function()
+			return profiler.results()
 		end
 
 		return interface

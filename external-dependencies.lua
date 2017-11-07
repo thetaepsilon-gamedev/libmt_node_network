@@ -6,3 +6,4 @@ _mod.util.mkassert = libmthelpers.check.mkassert
 _mod.util.center_on_node = libmthelpers.playerpos.center_on_node
 _mod.util.table_get_single = libmthelpers.tableutils.getsingle
 _mod.util.arraytomap = libmthelpers.tableutils.arraytomap
+_mod.util.mkprofiler = libmthelpers.profiling.create_profiler
