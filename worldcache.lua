@@ -114,6 +114,39 @@ end
 
 
 
+-- grid which wraps another and counts accesses.
+local mkstatsgrid = function(lowergrid)
+	local grid = {}
+	local count_get = 0
+	local count_set = 0
+	local count_getmetaref = 0
+
+	grid.get = function(...)
+		count_get = count_get + 1
+		return lowergrid.get(...)
+	end
+	grid.set = function(...)
+		count_set = count_set + 1
+		return lowergrid.set(...)
+	end
+	grid.getmetaref = function(...)
+		count_getmetaref = count_getmetaref + 1
+		return lowergrid.getmetaref(...)
+	end
+	grid.getstats = function()
+		return {
+			get = count_get,
+			set = count_set,
+			getmetaref = count_getmetaref,
+		}
+	end
+	grid.hasher = lowergrid.hasher
+
+	return grid
+end
+
+
+
 local noop = function() end
 local newcache = function(rawgrid)
 	if rawgrid == nil then
@@ -165,4 +198,5 @@ return {
 	mkmetadelayer = mkmetadelayer,
 	mkmtgrid = mkmtgrid,
 	new = newcache,
+	mkstatsgrid = mkstatsgrid,
 }
