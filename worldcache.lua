@@ -35,25 +35,33 @@ end
 -- returns the store instead of taking it, and also returns the mapping table.
 local mkcachehashed = function(read, write, hasher)
 	local store = {}
+	local writestore = {}
 	local maptokey = {}
 	local get = function(key)
 		local hash = hasher(key)
-		local v = store[hash]
+		-- check the write cache before the read one.
+		local v = writestore[hash]
 		if v == nil then
-			v = read(key)
-			store[hash] = v
-			maptokey[hash] = key
+			-- then check the read cache
+			v = store[hash]
+			-- if nobody had it, invoke the lower level
+			if v  == nil then
+				v = read(key)
+				store[hash] = v
+				maptokey[hash] = key
+			end
 		end
 		return v
 	end
 	local set = function(key, value)
 		local hash = hasher(key)
-		store[hash] = value
+		writestore[hash] = value
 		if maptokey[hash] == nil then maptokey[hash] = key end
 	end
 	local flush = function()
-		for h, v in pairs(store) do
-			--print("cache.flush() hash="..h)
+		--local addr = tostring(writestore)
+		for h, v in pairs(writestore) do
+			--print("cache.flush()@"..addr.." hash="..h)
 			local k = maptokey[h]
 			write(k, v)
 		end
