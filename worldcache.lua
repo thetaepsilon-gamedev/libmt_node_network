@@ -11,7 +11,8 @@ local mthasher = _mod.util.node_hasher
 -- read callback is invoked if a key is not present in the cache.
 -- write callback is invoked for each cached key when written out.
 -- returns three functions: get, set, and flush, which do as you would expect.
-local mkcache = function(store, read, write)
+local mkcache = function(read, write)
+	local store = {}
 	local get = function(key)
 		if store[key] == nil then
 			store[key] = read(key)
@@ -52,6 +53,7 @@ local mkcachehashed = function(read, write, hasher)
 	end
 	local flush = function()
 		for h, v in pairs(store) do
+			--print("cache.flush() hash="..h)
 			local k = maptokey[h]
 			write(k, v)
 		end
@@ -65,21 +67,18 @@ end
 local mkmetadelayer = function(pos)
 	local m = minetest.get_meta(pos)
 
-	local icache = {}
 	local iread = function(key) return m:get_int(key) end
 	local iwrite = function(key, value) return m:set_int(key, value) end
 
-	local fcache = {}
 	local fread = function(key) return m:get_float(key) end
 	local fwrite = function(key, value) return m:set_float(key, value) end
 
-	local scache = {}
 	local sread = function(key) return m:get_string(key) end
 	local swrite = function(key, value) return m:set_string(key, value) end
 
-	local iget, iset, iflush = mkcache(icache, iread, iwrite)
-	local fget, fset, fflush = mkcache(fcache, fread, fwrite)
-	local sget, sset, sflush = mkcache(scache, sread, swrite)
+	local iget, iset, iflush = mkcache(iread, iwrite)
+	local fget, fset, fflush = mkcache(fread, fwrite)
+	local sget, sset, sflush = mkcache(sread, swrite)
 
 	local flush_all = function() iflush() fflush() sflush() end
 	local interface = {
