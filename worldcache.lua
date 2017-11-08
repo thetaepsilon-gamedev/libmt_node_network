@@ -71,6 +71,32 @@ end
 
 
 
+-- alt form of the above that only caches writes.
+-- it always defers to the underlying function when reading,
+-- even when it has been previously written.
+local mkcachehashed_wo = function(read, write, hasher)
+	local writestore = {}
+	local maptokey = {}
+	local get = function(key)
+		return read(key)
+	end
+	local set = function(key, value)
+		local hash = hasher(key)
+		writestore[hash] = value
+		maptokey[hash] = key
+	end
+	local flush = function()
+		for h, v in pairs(writestore) do
+			local k = maptokey[h]
+			write(k, v)
+		end
+	end
+	return get, set, flush
+end
+
+
+
+
 -- metadata access object that caches and batches changes.
 local mkmetadelayer = function(pos)
 	local m = minetest.get_meta(pos)
@@ -164,7 +190,7 @@ local newcache = function(rawgrid)
 	local metarefs = {}
 	local metaflushers = {}
 
-	local nget, nset, nflush = mkcachehashed(grid.get, grid.set, hasher)
+	local nget, nset, nflush = mkcachehashed_wo(grid.get, grid.set, hasher)
 	-- isolate the meta ref's flush() function so that it can only be called via flushing this.
 	local getmetaraw = function(pos)
 		local m = grid.getmetaref(pos)
