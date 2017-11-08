@@ -1,6 +1,12 @@
 local centerpos = _mod.util.center_on_node
+local rep_node_hasher = function(vertex)
+	local centered = centerpos(vertex)
+	local sep = ","
+	return centered.x..sep..centered.y..sep..centered.z
+end
 local node_hasher = function(vertex) return minetest.hash_node_position(centerpos(vertex)) end
 _mod.util.node_hasher = node_hasher
+--_mod.util.node_hasher = rep_node_hasher
 
 -- helper utility for callback tables.
 -- looks up a key in the table and returns that if it's a function.
