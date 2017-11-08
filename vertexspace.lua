@@ -490,16 +490,46 @@ return {
 			return true
 		end
 
+
+
+		-- interface wrappers: calls enter exit callbacks,
+		-- sets up profiler, then hands off to the above.
 		interface.addvertex = function(...)
+			local timer = startclock()
+			local ev
+
+			ev = timer.mksub("c_enter")
 			c_enter()
+			ev.stop()
+
+			ev = timer.mksub("addvertex")
 			local result = addvertex(...)
+			ev.stop()
+
+			ev = timer.mksub("c_exit")
 			c_exit()
+			ev.stop()
+
+			timer.stop()
 			return result
 		end
 		interface.removevertex = function(...)
+			local timer = startclock()
+			local ev
+
+			ev = timer.mksub("c_enter")
 			c_enter()
+			ev.stop()
+
+			ev = timer.mksub("removevertex")
 			local result = removevertex(...)
+			ev.stop()
+
+			ev = timer.mksub("c_exit")
 			c_exit()
+			ev.stop()
+
+			timer.stop()
 			return result
 		end
 		interface.get_profiler_data = function()
