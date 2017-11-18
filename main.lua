@@ -33,6 +33,7 @@ local bfmap = bfmap_factory(bfmap_deps)
 _mod.modules.bfmap = bfmap
 
 _mod.modules.vertexspace = dofile(dir.."vertexspace.lua")
+_mod.modules.ropegraph = dofile(dir.."ropegraph.lua")
 
 _mod.modules.worldcache = dofile(dir.."worldcache.lua")
 

@@ -63,7 +63,7 @@ end
 --  remove a given edge from the set of edges associated with a given vertex.
 -- if afterwards the vertex has no edges associated with it,
 -- clean up the set also.
-local unlink_edge_for_vertex(self, hash, edge)
+local unlink_edge_for_vertex = function(self, hash, edge)
 	local edgeset = self.vertexmap[hash]
 	edgeset:remove(edge)
 	-- FIXME: warn if the above does something unexpected?
