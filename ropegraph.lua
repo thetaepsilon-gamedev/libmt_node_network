@@ -80,7 +80,7 @@ local unlink_edge_for_vertex = function(self, hash, edge)
 	local edgeset = self.vertexmap[hash]
 	edgeset:remove(edge)
 	-- FIXME: warn if the above does something unexpected?
-	if edgeset:size() == 0 then
+	if edgeset.size == 0 then
 		self.vertexmap[hash] = nil
 	end
 end
@@ -219,7 +219,7 @@ local update = function(self, overtex, ohash, ogroup, svertices, sgroups)
 	local ropes_to_check = {}
 	local removed_edges = remove_vertex(self, ohash)
 	for _, edge in ipairs(removed_edges) do
-		local rope = ropemap[edge]
+		local rope = self.ropemap[edge]
 		rope:countdown()
 		ropes_to_check[rope] = true
 	end
