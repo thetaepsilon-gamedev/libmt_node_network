@@ -243,3 +243,17 @@ local update = function(self, overtex, ohash, ogroup, svertices, sgroups)
 	cleanup_ropes(self, ropes_to_check)
 end
 
+-- successor function for using the rope graph:
+-- given the data structure and a starting group ID,
+-- returns the set of groups which are connected to the starting one.
+local successor = function(self, startgroup)
+	local groupset = self.groupmap[startgroup]
+	local result = {}
+	if groupset ~= nil then
+		for group in groupset:iterator() do
+			table.insert(groupset, group)
+		end
+	end
+	return result
+end
+
