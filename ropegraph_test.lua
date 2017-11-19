@@ -21,9 +21,12 @@ m.test = function()
 	local g = m.new()
 
 	emptycheck(g:successor(1), "successor list for non-existant group")
+	print("-- before update --")
 	g:update("foo", "a", 1, {b="bar"}, {b=2})
+	print("-- after update --")
 	local successors = g:successor(1)
 	local size = #successors
+	--print(dump(g.groupmap))
 	assert(size == 1, "successor list should now have one entry, actual="..size)
 	assert(successors[1] == 2, "successor group should have ID 2")
 

@@ -125,6 +125,7 @@ local getgroupset = function(self, groupid)
 	local map = self.groupmap
 	local groupset = map[groupid]
 	if not groupset then
+		print("creating group set for ID "..groupid)
 		groupset = ns_datastructs.tableset.new_raw()
 		map[groupid] = groupset
 	end
@@ -194,6 +195,7 @@ local cleanup_ropes = function(self, candidate_list)
 	for _, rope in ipairs(candidate_list) do
 		if rope.count == 0 then
 			local rhash = hash_rope(rope.group1, rope.group2)
+			print("rope is being discarded: "..rhash)
 			self.ropes[rhash] = nil
 			-- when a rope is to be vanished,
 			-- also update the successor entries to reflect the removal.
@@ -240,6 +242,8 @@ local update = function(self, overtex, ohash, ogroup, svertices, sgroups)
 			-- associate it with it's containing rope
 			self.ropemap[edge] = rope
 			rope:countup()
+		else
+			print("discarding invalid group pair")
 		end
 	end
 
@@ -255,10 +259,11 @@ local successor = function(self, startgroup)
 	local result = {}
 	if groupset ~= nil then
 		for group in groupset:iterator() do
-			table.insert(groupset, group)
+			print("successor found entry: "..tostring(group))
+			table.insert(result, group)
 		end
 	else
-		--print("group doesn't exist. groupid="..tostring(startgroup))
+		print("group doesn't exist. groupid="..tostring(startgroup))
 	end
 	return result
 end
