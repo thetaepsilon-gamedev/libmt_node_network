@@ -6,4 +6,5 @@ return {
 		node_hasher = _mod.util.node_hasher,
 	},
 	worldcache = _mod.modules.worldcache,
+	ropegraph = _mod.modules.ropegraph,
 }
