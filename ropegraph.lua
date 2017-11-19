@@ -257,3 +257,21 @@ local successor = function(self, startgroup)
 	return result
 end
 
+
+
+local interface = {}
+
+local newropegraph = function()
+	local self = {}
+	self.vertexmap = {}
+	self.ropemap = {}
+	self.ropes = {}
+	self.groupmap = {}
+	self.successor = successor
+	self.update = update
+	return self
+end
+interface.new = newropegraph
+interface.successor = successor
+
+return interface
