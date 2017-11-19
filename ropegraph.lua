@@ -159,6 +159,16 @@ local validate_group_pair = function(groupa, groupb)
 		(groupa ~= groupb))
 end
 
+-- clean up a list of candidate removal ropes if their refcount is zero.
+local cleanup_ropes = function(self, candidate_list)
+	for _, rope in ipairs(candidate_list) do
+		if rope.count == 0 then
+			local rhash = hash_rope(rope.group1, rope.group2)
+			self.ropes[rhash] = nil
+		end
+	end
+end
+
 
 
 -- svertices and sgroups are indexed by the associated hash.
@@ -195,7 +205,11 @@ local update = function(self, overtex, ohash, ogroup, svertices, sgroups)
 			local edge = add_edge(self, ohash, shash)
 			-- associate it with it's containing rope
 			self.ropemap[edge] = rope
+			rope:countup()
 		end
 	end
+
+	-- now check if the ropes that were decremented earlier are still non-zero.
+	cleanup_ropes(self, ropes_to_check)
 end
 
