@@ -55,6 +55,15 @@ ropes = {
 	},
 	...
 }
+groupmap = {
+	-- indexed by group ID:
+	[group1] = {
+		-- set of groups connected to this one
+		group2,
+		group3,
+		...
+	}
+}
 ]]
 
 local get_other_vertex = function(edge, hash)
@@ -106,6 +115,18 @@ local hash_rope = function(a, b)
 	return tostring(a).."!!"..tostring(b)
 end
 
+-- obtains the set of other groups on edges leading away from a given group ID.
+-- creates it if it does not exist.
+local getgroupset = function(self, groupid)
+	local map = self.groupmap
+	local groupset = map[groupid]
+	if not groupset then
+		groupset = ns_datastructs.tableset.new_raw()
+		map[groupid] = groupset
+	end
+	return edgeset
+end
+
 -- obtains the reference to a rope given it's group pair hash,
 -- or creates a new one if it didn't exist
 local countup = function(self) self.count = self.count + 1 end
@@ -123,6 +144,11 @@ local getrope = function(self, groupa, groupb)
 			countdown = countdown,
 		}
 		ropes[gpairhash] = rhandle
+		-- set up tracking entries from one group to another for successor
+		local groupseta = getgroupset(self, groupa)
+		groupseta:add(groupb)
+		local groupsetb = getgroupset(self, groupb)
+		groupsetb:add(groupa)
 	end
 
 	return rhandle
@@ -165,6 +191,10 @@ local cleanup_ropes = function(self, candidate_list)
 		if rope.count == 0 then
 			local rhash = hash_rope(rope.group1, rope.group2)
 			self.ropes[rhash] = nil
+			-- when a rope is to be vanished,
+			-- also update the successor entries to reflect the removal.
+			groupmap[rope.group1]:remove(rope.group2)
+			groupmap[rope.group2]:remove(rope.group1)
 		end
 	end
 end
