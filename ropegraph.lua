@@ -12,6 +12,10 @@
 -- the successor function, per requirements for a successor from the search algorithm,
 -- will never deliver a group N as a successor vertex when N itself is passed as input.
 
+-- I wish I could write "namespace" and datastructs::tableset::new_raw() sometimes...
+local require = mtrequire	-- see modns - built-in require() is disabled for security
+local ns_datastructs = require("com.github.thetaepsilon.minetest.libmthelpers.datastructs")
+
 --[[
 internally, the data structure stores "big edges" (referred to as "ropes" below)
 from one group to another, and the vertex-pair edges which form it
@@ -91,6 +95,7 @@ end
 
 -- canonical hasher to determine if a group pair already exists as a rope.
 -- takes the form "a!!b", where a is always the group that is less than (from "<") the other.
+-- !! implies the group IDs are by-value comparable!
 local hash_rope = function(a, b)
 	local x, y
 	if a < b then
@@ -99,6 +104,51 @@ local hash_rope = function(a, b)
 		x, y = b, a
 	end
 	return tostring(a).."!!"..tostring(b)
+end
+
+-- obtains the reference to a rope given it's group pair hash,
+-- or creates a new one if it didn't exist
+local countup = function(self) self.count = self.count + 1 end
+local countdown = function(self) self.count = self.count - 1 end
+local getrope = function(self, groupa, groupb)
+	local gpairhash = hash_rope(groupa, groupb)
+	local ropes = self.ropes
+	local rhandle = ropes[gpairhash]
+	if rhandle == nil then
+		rhandle = {
+			group1 = groupa,
+			group2 = groupb,
+			count = 0,
+			countup = countup,
+			countdown = countdown,
+		}
+		ropes[gpairhash] = rhandle
+	end
+
+	return rhandle
+end
+
+-- similar to the above, but for individual vertices (not edges).
+-- obtains the edge set for a given vertex or initialises it to empty if it does not exist.
+local getedgeset = function(self, hash)
+	local map = self.vertexmap
+	local edgeset = map[hash]
+	if not edgeset then
+		edgeset = ns_datastructs.tableset.new_raw()
+		map[hash] = edgeset
+	end
+	return edgeset
+end
+
+-- creates an edge between two vertex hashes and associates the edge into both of their edge sets.
+-- this ensures that an edge is "accessible" from either of the vertices in it.
+local add_edge = function(self, hasha, hashb)
+	local seta = getedgeset(self, hasha)
+	local setb = getedgeset(self, hashb)
+	local edge = { hasha, hashb }
+	seta:add(edge)
+	setb:add(edge)
+	return edge
 end
 
 
@@ -126,7 +176,12 @@ local update = function(self, overtex, ohash, ogroup, svertices, sgroups)
 	-- here we have to check if a given group pair already exists as a rope.
 	for shash, svertex in pairs(svertices) do
 		local sgroup = sgroups[hash]
-		
+		-- see above, this takes care of creating a rope for this pair if it does not exist.
+		local rope = getrope(self, ogroup, sgroup)
+		-- create an edge for this pair of vertices and link it to these hashes
+		local edge = add_edge(self, ohash, shash)
+		-- associate it with it's containing rope
+		self.ropemap[edge] = rope
 	end
 end
 
