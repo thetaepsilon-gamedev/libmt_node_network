@@ -151,6 +151,14 @@ local add_edge = function(self, hasha, hashb)
 	return edge
 end
 
+-- check to see if a group pair should be stored or not.
+local validate_group_pair = function(groupa, groupb)
+	return (
+		(groupa ~= nil) and
+		(groupb ~= nil) and
+		(groupa ~= groupb))
+end
+
 
 
 -- svertices and sgroups are indexed by the associated hash.
@@ -176,12 +184,18 @@ local update = function(self, overtex, ohash, ogroup, svertices, sgroups)
 	-- here we have to check if a given group pair already exists as a rope.
 	for shash, svertex in pairs(svertices) do
 		local sgroup = sgroups[hash]
-		-- see above, this takes care of creating a rope for this pair if it does not exist.
-		local rope = getrope(self, ogroup, sgroup)
-		-- create an edge for this pair of vertices and link it to these hashes
-		local edge = add_edge(self, ohash, shash)
-		-- associate it with it's containing rope
-		self.ropemap[edge] = rope
+		-- validate the group pair.
+		-- if either group is nil or they are the same,
+		-- don't store it as else it'll break invariants
+		-- (not to mention causing nil key errors)
+		if validate_group_pair(ogroup, sgroup) then
+			-- see definition above
+			local rope = getrope(self, ogroup, sgroup)
+			-- create an edge for this pair of vertices and link it to these hashes
+			local edge = add_edge(self, ohash, shash)
+			-- associate it with it's containing rope
+			self.ropemap[edge] = rope
+		end
 	end
 end
 
