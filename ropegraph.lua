@@ -128,7 +128,7 @@ local getgroupset = function(self, groupid)
 		groupset = ns_datastructs.tableset.new_raw()
 		map[groupid] = groupset
 	end
-	return edgeset
+	return groupset
 end
 
 -- obtains the reference to a rope given it's group pair hash,
@@ -227,7 +227,7 @@ local update = function(self, overtex, ohash, ogroup, svertices, sgroups)
 	-- now add links back for the specified successors.
 	-- here we have to check if a given group pair already exists as a rope.
 	for shash, svertex in pairs(svertices) do
-		local sgroup = sgroups[hash]
+		local sgroup = sgroups[shash]
 		-- validate the group pair.
 		-- if either group is nil or they are the same,
 		-- don't store it as else it'll break invariants
