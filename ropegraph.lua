@@ -88,9 +88,13 @@ end
 -- remove a vertex and any edges stored for it.
 local remove_vertex = function(self, hash)
 	local removed_edges = {}
+
+	-- early return if the hash does not exist yet.
+	if self.vertexmap[hash] == nil then return {} end
+
 	-- get the other vertex associated with each of the edges this vertex is part of.
 	-- update the tracking entries for those other vertices to remove their link to those edges
-	for edge in self.vertexmap.iterator() do
+	for edge in self.vertexmap[hash]:iterator() do
 		table.insert(removed_edges, edge)
 		local otherhash = get_other_vertex(edge, hash)
 		-- make sure the other vertex does not have an edge pointing back to this one.
@@ -212,7 +216,7 @@ local update = function(self, overtex, ohash, ogroup, svertices, sgroups)
 	-- delete it.
 	local ropes_to_check = {}
 	local removed_edges = remove_vertex(self, ohash)
-	for _, edge in removed_edges do
+	for _, edge in ipairs(removed_edges) do
 		local rope = ropemap[edge]
 		rope:countdown()
 		ropes_to_check[rope] = true
@@ -253,6 +257,8 @@ local successor = function(self, startgroup)
 		for group in groupset:iterator() do
 			table.insert(groupset, group)
 		end
+	else
+		--print("group doesn't exist. groupid="..tostring(startgroup))
 	end
 	return result
 end
