@@ -199,8 +199,13 @@ local cleanup_ropes = function(self, candidate_list)
 			self.ropes[rhash] = nil
 			-- when a rope is to be vanished,
 			-- also update the successor entries to reflect the removal.
-			self.groupmap[rope.group1]:remove(rope.group2)
-			self.groupmap[rope.group2]:remove(rope.group1)
+			local groupset = self.groupmap[rope.group1]
+			groupset:remove(rope.group2)
+			if groupset.size == 0 then self.groupmap[rope.group1] = nil end
+
+			groupset = self.groupmap[rope.group2]
+			groupset:remove(rope.group1)
+			if groupset.size == 0 then self.groupmap[rope.group2] = nil end
 		end
 	end
 end

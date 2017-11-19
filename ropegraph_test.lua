@@ -48,6 +48,7 @@ m.test = function()
 	g:update("foo", "c", 1, {}, {})
 	successors = g:successor(1)
 	emptycheck(successors, "successor list after removing a and c links (size="..#successors..")")
+	assert(g.groupmap[1] == nil, "internal rope structure for group 1 should be gone")
 
 	-- re-add a with links to two groups now.
 	g:update("foo", "a", 1, {b="bar", c="baz"}, {b=2, c=3})
