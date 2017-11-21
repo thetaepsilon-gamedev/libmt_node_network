@@ -61,5 +61,11 @@ m.test = function()
 	assert(listequal(g:successor(1), {3}), "group 1 should point to 3 only after removal of b")
 	assert(listequal(g:successor(3), {1}), "group 3 should point to 1")
 
+	-- create an independent pair of groups.
+	-- they should remain separate as they share no connections with the former groups.
+	g:update("etc", "d", 4, {e="wat"}, {e=5})
+	assert(listequal(g:successor(4), {5}), "group 4 should point to 5 and be independent of 1 and 3")
+	assert(listequal(g:successor(1), {3}), "group 1 should not refer to new groups with no common connections")
+
 	return "self-tests completed successfully"
 end
