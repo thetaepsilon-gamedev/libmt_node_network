@@ -24,7 +24,8 @@ In most cases, unless a group splits apart, the higher-level graph doesn't need 
 yielding amortised O(1) performance.
 ]]
 
---[[
+
+
 local update = function(self, vertex)
 	-- firstly remove any existing information about this vertex
 	-- this should clear existing group mappings etc...
@@ -62,4 +63,3 @@ local update = function(self, vertex)
 	-- the touching groups will all have been recorded above.
 	foundgroup = self:newgroupwith(hash)
 end
-]]
