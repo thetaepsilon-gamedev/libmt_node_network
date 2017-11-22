@@ -25,9 +25,41 @@ yielding amortised O(1) performance.
 ]]
 
 --[[
-local addvertex = function(self, vertex)
-	-- same group optimisation: if all successors reside in the same existing group,
-	-- add it to that group if it'll fit, else create a new one.
-	
+local update = function(self, vertex)
+	-- firstly remove any existing information about this vertex
+	-- this should clear existing group mappings etc...
+	self:clearvertex(vertex)
+
+	-- ..so that here we can add the vertex as if new.
+	local successors = successor(vertex)
+	successors = toset(successors)
+
+	-- we want to see if any groups touching this vertex has room left.
+	-- if so, add the vertex to that group directly.
+	-- otherwise, or if already added to a group,
+	-- make a note of the found group being adjacent to the added one.
+	-- (currently unhandled: deal with untracked adjacent vertices)
+	local foundgroup = nil
+	local touchinggroups = {}
+	for successor in successors:iterator() do
+		local shash = self.hasher(successor)
+		local group = self:getgroup(shash)
+		-- argh, why does lua not have continue for loops!?
+		if group then
+			local canfit = (group:size() < self.grouplimit)
+			if not foundgroup and canfit then
+				self:addtogroup(group, hash)
+				foundgroup = group
+			else
+				table.insert(touchinggroups, group)
+			end
+		else
+			self:warning("unhandled.untracked_successor")
+		end
+	end
+	-- if none of the successors were groups with room left,
+	-- then create a new one and add the vertex to it.
+	-- the touching groups will all have been recorded above.
+	foundgroup = self:newgroupwith(hash)
 end
 ]]
