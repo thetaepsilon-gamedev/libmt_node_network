@@ -41,6 +41,7 @@ local update = function(self, vertex)
 	-- make a note of the found group being adjacent to the added one.
 	-- (currently unhandled: deal with untracked adjacent vertices)
 	local foundgroup = nil
+	local touchingvertices = {}
 	local touchinggroups = {}
 	for successor in successors:iterator() do
 		local shash = self.hasher(successor)
@@ -52,7 +53,8 @@ local update = function(self, vertex)
 				self:addtogroup(group, hash)
 				foundgroup = group
 			else
-				table.insert(touchinggroups, group)
+				touchingvertices[shash] = successor
+				touchinggroups[shash] = group
 			end
 		else
 			self:warning("unhandled.untracked_successor")
@@ -62,4 +64,7 @@ local update = function(self, vertex)
 	-- then create a new one and add the vertex to it.
 	-- the touching groups will all have been recorded above.
 	foundgroup = self:newgroupwith(hash)
+
+	-- update the list of groups that this vertex touches.
+	self.ropegraph:update(vertex, self.hasher(vertex), foundgroup, touchingvertices, touchinggroups)
 end
