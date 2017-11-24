@@ -1,5 +1,5 @@
 local libnetwork = modns.get("com.github.thetaepsilon.minetest.libmt_node_network")
-local libexamples = modns.get("com.github.thetaepsilon.minetest.libmt_node_network.examples")
+local libexamples = modns.get("com.github.thetaepsilon.minetest.libmt_node_network_examples")
 local woollist = {
 	"wool:white",
         "wool:red",

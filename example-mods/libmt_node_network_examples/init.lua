@@ -8,6 +8,6 @@ dofile(modpath.."main.lua")
 
 local export = dofile(modpath.."export.lua")
 node_network_examples = export
-modns.register("com.github.thetaepsilon.minetest.libmt_node_network.examples", export)
+modns.register("com.github.thetaepsilon.minetest.libmt_node_network_examples", export)
 
 _mod = nil
