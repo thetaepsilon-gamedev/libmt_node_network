@@ -42,6 +42,7 @@ return {
 	--		references to the same vertex must hash to the same value.
 	--	successor: also like in bfmap,
 	--		returns references to the vertexes connected to the given vertex.
+	-- additionally, impl.timer is expected to be a function which retrieves the current time.
 	new = function(impl, callbacks, opts, label)
 		if label ~= nil then
 			label = " "..tostring(label)
@@ -55,7 +56,7 @@ return {
 		callbacks = table_or_missing(callbacks, "callbacks")
 		opts = table_or_missing(opts, "opts")
 
-		local profiler = mkprofiler()
+		local profiler = mkprofiler(impl.timer)
 		local debugger = callback_or_missing(callbacks, "debugger", stub)
 		local warn_caller = callback_or_missing(callbacks, "warning", stub)
 		local warning = mkwarning("vertexspace"..label, warn_caller)
