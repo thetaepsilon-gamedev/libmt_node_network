@@ -1,3 +1,7 @@
+_mod.new = {}
+_mod.util = {}
+_mod.new = {}
+
 local modhelpers_base = "com.github.thetaepsilon.minetest.libmthelpers."
 
 local pos = modns.get(modhelpers_base.."playerpos")

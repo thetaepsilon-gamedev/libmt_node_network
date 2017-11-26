@@ -1,6 +1,3 @@
-_mod.new = {}
-_mod.util = {}
-_mod.new = {}
 local modules = {}
 
 dofile(_mod.modpath.."external-dependencies.lua")
