@@ -49,7 +49,7 @@ local make_successor_gridfull = function(successor_gridless, grid_access_table)
 end
 
 return {
-	new = function(initialname, cyclelist, localcallbacks, label, localopts, grid)
+	new = function(initialname, cyclelist, localcallbacks, label, localopts, grid, timer)
 		local vlabel = "demo"
 		if vlabel ~= nil then vlabel = vlabel.." "..label end
 		if localopts == nil then localopts = {} end
@@ -75,7 +75,7 @@ return {
 		local stats = {}
 		local successor_gridless = make_list_successor_gridless(tester)
 		local successor = make_successor_gridfull(successor_gridless, scache)
-		local impl = { hasher=hasher, successor=successor }
+		local impl = { hasher=hasher, successor=successor, timer=timer }
 
 		-- internal statistic helpers
 		local savestats = function()
