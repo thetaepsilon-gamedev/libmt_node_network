@@ -1,4 +1,5 @@
 local node_virus = {}
+local modhelpers = mtrequire("com.github.thetaepsilon.minetest.libmthelpers")
 
 -- an example use of the breadth-first map utility: a "node virus".
 -- takes a victim node name and a replacement node.
