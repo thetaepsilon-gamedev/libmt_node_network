@@ -19,7 +19,8 @@ local woollist = {
 }
 local opts = { forgetnode="default:obsidian" }
 local grid = libnetwork.worldcache.mkmtgrid()
-woolnet = libexamples.demonet.new("default:cobble", woollist, {}, "woolnet", opts, grid)
+local timer = minetest.get_us_time
+woolnet = libexamples.demonet.new("default:cobble", woollist, {}, "woolnet", opts, grid, timer)
 minetest.register_on_placenode(function(pos, newnode, placer, oldnode, itemstack, pointed_thing)
 	if newnode.name == "default:cobble" then
 		woolnet.addvertex(pos)
