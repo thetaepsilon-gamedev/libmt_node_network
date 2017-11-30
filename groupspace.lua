@@ -29,7 +29,8 @@ yielding amortised O(1) performance.
 local update = function(self, vertex)
 	-- firstly remove any existing information about this vertex
 	-- this should clear existing group mappings etc...
-	self:clearvertex(vertex)
+	local vhash = self.hasher(vertex)
+	self:clearvertex(vhash)
 
 	-- ..so that here we can add the vertex as if new.
 	local successors = successor(vertex)
@@ -63,8 +64,8 @@ local update = function(self, vertex)
 	-- if none of the successors were groups with room left,
 	-- then create a new one and add the vertex to it.
 	-- the touching groups will all have been recorded above.
-	foundgroup = self:newgroupwith(hash)
+	foundgroup = self:newgroupwith(vhash)
 
 	-- update the list of groups that this vertex touches.
-	self.ropegraph:update(vertex, self.hasher(vertex), foundgroup, touchingvertices, touchinggroups)
+	self.ropegraph:update(vertex, vhash, foundgroup, touchingvertices, touchinggroups)
 end
