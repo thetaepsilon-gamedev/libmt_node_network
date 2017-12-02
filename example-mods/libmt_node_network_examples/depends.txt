@@ -1,3 +1,0 @@
-libmthelpers
-libmt_node_network
-modns
