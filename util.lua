@@ -77,13 +77,3 @@ local mkwarning = function(callername, extraprinter)
 	end
 end
 _mod.util.mkwarning = mkwarning
-
--- create a copy of a table.
--- used if a table is expected to be modified,
--- but the original also needs preserving.
-local shallowcopy = function(t)
-	local result = {}
-	for k, v in pairs(t) do result[k] = v end
-	return result
-end
-_mod.util.shallowcopy = shallowcopy
