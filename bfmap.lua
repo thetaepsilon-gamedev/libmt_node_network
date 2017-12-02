@@ -111,7 +111,7 @@ return {
 		local whenfinished = function()
 			self.finished = true
 			-- frontiers queue will contain any remaining frontiers at this point if terminating due to limit
-			oncompleted(self.frontiers.iterator())
+			oncompleted(mk_remainder_iterator(self.frontiers))
 		end
 		-- add initial vertex to start off process
 		self.frontiers.enqueue(initial)
@@ -139,25 +139,25 @@ return {
 				debugger(dname.."got frontier: "..tostring(frontier))
 
 				-- remove this node from pending frontiers if it's allowed
-				local frontier_hash = hasher(frontier)
+				local frontier_hash
+				frontier, frontier_hash = unwrap(frontier)
 				self.pending[frontier_hash] = nil
 
-				if testvertex(frontier) then
+				if testvertex(frontier, frontier_hash) then
 					debugger(dname.."frontier passed testvertex")
 
 					-- get successors of this vertex
-					local successors = successor(frontier)
+					local successors = successor(frontier, frontier_hash)
 					increment(stats, "successor_invocation_count")
 					debugger(dname.."successor ran successfully, result="..tostring(successors))
 					-- check each result, and insert into frontiers if not already visited
-					for index, vertex in ipairs(successors) do
-						local hash = hasher(vertex)
+					for hash, vertex in pairs(successors) do
 						-- hash will have been assigned below on a previous pass if already visited.
 						if self.visited[hash] == nil then
 							if not self.pending[hash] then
-								markfrontier(vertex)
+								markfrontier(vertex, hash)
 								self.pending[hash] = true
-								self.frontiers.enqueue(vertex)
+								self.frontiers.enqueue(wrap(vertex, hash))
 							else
 								increment(stats, "discarded_successor_pending")
 							end
