@@ -20,6 +20,23 @@ local passthrough = function(vertex)
 	return true
 end
 
+-- create an iterator from the remainder queue.
+-- internally, the queued vertices are stored as tuples of vertex and hash.
+-- this iterator will unwrap the elements and return them directly.
+local wrap = function(k, v) return { k, v } end
+local unwrap = function(e) return e.k, e.v end
+local mk_remainder_iterator = function(queue)
+	local it = queue.iterator()
+	return function()
+		local e = it()
+		local k, v
+		if e ~= nil then
+			k, v = unwrap(e)
+		end
+		return k, v
+	end
+end
+
 local checktable = mk_table_or_missing(dname_new)
 local checkfn = mkfnexploder(dname_new)
 local callback_or_missing = mk_callback_or_missing(dname_new)
@@ -31,7 +48,7 @@ return {
 	-- must return the vertexes connected to the provided one.
 	-- the successor is allowed to return the previously visited node just fine,
 	-- as the algorithm checks for already visited nodes anyway.
-	-- hasher must return the next vertex and a hash value;
+	-- successor must return the next vertex and a hash value;
 	-- two vertexes are considered equal iff (hasha == hashb) in lua.
 	-- read hasher-readme.md for the rationale here.
 	-- however, the hash should have a unique value for all possible vertexes;
@@ -44,17 +61,16 @@ return {
 	--	markfrontier: called when a vertex is added as a frontier.
 	--	finished: called when the graph has been exhaustively mapped.
 	--		gets passed the following arguments:
-	--		remainder: an iterator which will return the remaining skipped vertexes.
+	--		remainder: an iterator which will return the remaining skipped vertices and hashes (in that order).
 	-- if initial is nil, advance() below is guaranteed to return false on first invocation.
 	-- note that if any callbacks edit the graph nodes during or between advance steps
 	-- (e.g. by editing the world, changing the outcome of the successor function),
 	-- it is recommended to provide the testvertex callback.
-	new = function(initial, successor, hasher, callbacks, opts)
+	new = function(initialv, initialhash, successor, callbacks, opts)
 		-- note that queues reject nil items,
 		-- so if initial is nil the queue will be empty.
 		-- this gives us the behaviour for advance() as stated above.
 		checkfn(successor, "successor")
-		checkfn(hasher, "hasher")
 
 		callbacks = checktable(callbacks, "callbacks")
 		opts = checktable(opts, "opts")
@@ -76,7 +92,7 @@ return {
 			-- frontier list.
 			-- will be checked in FIFO order as discovered when advanced.
 			frontiers = newqueue(),
-			-- discovered node list, hashed by the hasher function.
+			-- discovered node list: map of hashes to vertices.
 			-- already-visited nodes are checked for in successor vertexes.
 			visited = {},
 			-- cache of pending frontiers.
