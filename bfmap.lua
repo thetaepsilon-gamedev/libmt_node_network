@@ -31,13 +31,15 @@ return {
 	-- must return the vertexes connected to the provided one.
 	-- the successor is allowed to return the previously visited node just fine,
 	-- as the algorithm checks for already visited nodes anyway.
-	-- hasher must return a unique string representation of a vertex.
-	-- hash collisions will result in a vertex being incorrectly skipped.
-	-- supported callbacks:
-	--	testvertex: additional test stage when frontier is popped from queue.
-	--	if it returns false the frontier vertex is simply discarded.
-	--	visitor: called when vertex is added to the visited list.
-	--		gets passed the vertex and it's hash.
+	-- hasher must return the next vertex and a hash value;
+	-- two vertexes are considered equal iff (hasha == hashb) in lua.
+	-- read hasher-readme.md for the rationale here.
+	-- however, the hash should have a unique value for all possible vertexes;
+	-- hash collisions will likely result in a vertex being incorrectly skipped.
+	-- supported callback methods:
+	--	testvertex(vertex, hash): additional test stage when frontier is popped from queue.
+	--		if it returns false the frontier vertex is simply discarded.
+	--	visitor(vertex, hash): called when vertex is added to the visited list.
 	--	debugger: called with trace point messages if it exists.
 	--	markfrontier: called when a vertex is added as a frontier.
 	--	finished: called when the graph has been exhaustively mapped.
