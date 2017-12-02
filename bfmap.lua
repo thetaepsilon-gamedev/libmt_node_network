@@ -1,12 +1,14 @@
+local libmthelpers = modns.get("com.github.thetaepsilon.minetest.libmthelpers")
+local newqueue = libmthelpers.datastructs.new.queue
+local increment = libmthelpers.stats.increment_counter
+local mkfnexploder = libmthelpers.check.mkfnexploder
+
 local factory = function(deps)
 
 -- abstract breadth-first graph mapping.
 -- unlike a breadth-first *search* which terminates when finding a success state,
 -- this algorithm attempts to exhaustively map a graph of connected neighbours (up to a limit).
 -- otherwise though this is as generic as the algorithm example found on wikipedia.
-local newqueue = deps.new.queue
-local increment = deps.increment_counter
-local mkfnexploder = deps.mkfnexploder
 local mk_callback_or_missing = deps.mk_callback_or_missing
 local mk_table_or_missing = deps.mk_table_or_missing
 
