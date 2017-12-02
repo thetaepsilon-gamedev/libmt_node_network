@@ -50,7 +50,7 @@ return {
 	-- as the algorithm checks for already visited nodes anyway.
 	-- successor must return the next vertex and a hash value;
 	-- two vertexes are considered equal iff (hasha == hashb) in lua.
-	-- read hasher-readme.md for the rationale here.
+	-- read hashing-readme.md for the rationale here.
 	-- however, the hash should have a unique value for all possible vertexes;
 	-- hash collisions will likely result in a vertex being incorrectly skipped.
 	-- supported callback methods:
