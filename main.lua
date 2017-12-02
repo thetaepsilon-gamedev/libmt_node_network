@@ -19,17 +19,8 @@ dofile(_mod.modpath.."external-dependencies.lua")
 -- misc internal helpers
 dofile(dir.."util.lua")
 
-local bfmap_deps = {
-	new = {
-		queue = _mod.new.queue,
-	},
-	increment_counter = _mod.util.increment_counter,
-	mkfnexploder = _mod.util.mkfnexploder,
-	mk_callback_or_missing = _mod.util.mk_callback_or_missing,
-	mk_table_or_missing = _mod.util.mk_table_or_missing,
-}
-local bfmap_factory = dofile(dir.."bfmap.lua")
-local bfmap = bfmap_factory(bfmap_deps)
+
+local bfmap = dofile(dir.."bfmap.lua")
 _mod.modules.bfmap = bfmap
 
 _mod.modules.ropegraph = dofile(dir.."ropegraph.lua")

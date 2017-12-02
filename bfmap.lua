@@ -45,8 +45,6 @@ end
 
 
 
-local factory = function(deps)
-
 -- abstract breadth-first graph mapping.
 -- unlike a breadth-first *search* which terminates when finding a success state,
 -- this algorithm attempts to exhaustively map a graph of connected neighbours (up to a limit).
@@ -236,5 +234,3 @@ return {
 	end
 }
 
-end -- factory()
-return factory
