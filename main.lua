@@ -32,15 +32,8 @@ local bfmap_factory = dofile(dir.."bfmap.lua")
 local bfmap = bfmap_factory(bfmap_deps)
 _mod.modules.bfmap = bfmap
 
-_mod.modules.vertexspace = dofile(dir.."vertexspace.lua")
 _mod.modules.ropegraph = dofile(dir.."ropegraph.lua")
 dofile(dir.."ropegraph_test.lua")
 _mod.modules.groupspace = dofile(dir.."groupspace.lua")
 
 _mod.modules.worldcache = dofile(dir.."worldcache.lua")
-
-local networkspace_deps = {
-	logger = logger
-}
-local networkspace_factory = dofile(dir.."networkspace_register.lua")
-_mod.modules.networkspace = networkspace_factory(networkspace_deps)
