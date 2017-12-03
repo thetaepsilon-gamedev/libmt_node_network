@@ -153,7 +153,7 @@ return {
 			oncompleted(mk_remainder_iterator(self.frontiers))
 		end
 		-- add initial vertex to start off process
-		self.frontiers.enqueue(initial)
+		self.frontiers.enqueue(wrap(initialv, initialhash))
 		local interface = {
 			advance = function()
 				if self.finished then return false end
