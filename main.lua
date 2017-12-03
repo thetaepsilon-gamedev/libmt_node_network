@@ -20,7 +20,7 @@ dofile(_mod.modpath.."external-dependencies.lua")
 dofile(dir.."util.lua")
 
 
-local bfmap = dofile(dir.."bfmap.lua")
+local bfmap = mtrequire(_mod.base..".bfmap")
 _mod.modules.bfmap = bfmap
 
 _mod.modules.ropegraph = dofile(dir.."ropegraph.lua")
