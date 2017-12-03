@@ -11,7 +11,6 @@ local mkfnexploder = libmthelpers.check.mkfnexploder
 -- the default function should be idempotent
 -- (i.e. it does nothing or it returns a default value which doesn't affect anything).
 -- if the key is neither a function nor nil then an error is thrown.
-local mkfnexploder = _mod.util.mkfnexploder
 local mk_callback_or_missing = function(caller)
 	--local dname = "callback_or_missing"
 	local checkfn = mkfnexploder(caller)
