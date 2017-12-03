@@ -62,7 +62,7 @@ end
 -- create an iterator from the remainder queue.
 -- internally, the queued vertices are stored as tuples of vertex and hash.
 -- this iterator will unwrap the elements and return them directly.
-local wrap = function(k, v) return { k, v } end
+local wrap = function(k, v) return { k=k, v=v } end
 local unwrap = function(e) return e.k, e.v end
 local mk_remainder_iterator = function(queue)
 	local it = queue.iterator()
