@@ -33,6 +33,7 @@ self = {
 		-- keys in here are hashes and the values are the group tables.
 		-- groups are passed around by value,
 		-- so callers can already use this to obtain refs to other groups using the ropegraph.
+		-- this guarded map has no remove callback.
 }
 ]]
 local guardedmap = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.datastructs.guardedmap")
@@ -43,10 +44,20 @@ local whichgroup = function(self, vhash) return self.maptogroup:get(vhash) end
 
 
 
+-- clear out the given vertex by hash from any internal data tables.
+-- returns the group that the hash used to belong to, if any.
+-- note this does NOT update the ropegraph, see update() for that.
+local clearvertex = function(self, vhash)
+	local group = self.maptogroup:remove(vhash)
+	return group
+end
+
+
+
 local update = function(self, vertex, vhash)
 	-- firstly remove any existing information about this vertex
 	-- this should clear existing group mappings etc...
-	self:clearvertex(vhash)
+	local oldgroup = clearvertex(self, vhash)
 
 	-- ..so that here we can add the vertex as if new.
 	local successors = self.successor(vertex, vhash)
