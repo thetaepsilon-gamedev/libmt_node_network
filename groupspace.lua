@@ -34,9 +34,14 @@ self = {
 		-- groups are passed around by value,
 		-- so callers can already use this to obtain refs to other groups using the ropegraph.
 		-- this guarded map has no remove callback.
+		-- group tables are guarded maps also;
+		-- their remove operation warns if there is an attempt to remove a non-existant vertex.
 }
 ]]
 local guardedmap = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.datastructs.guardedmap")
+local bfmap = mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.bfmap")
+local tableutils = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.tableutils")
+local shallowcopy = tableutils.shallowcopy
 
 
 
@@ -50,6 +55,73 @@ local whichgroup = function(self, vhash) return self.maptogroup:get(vhash) end
 local clearvertex = function(self, vhash)
 	local group = self.maptogroup:remove(vhash)
 	return group
+end
+
+
+
+-- successor function for the repair operation that looks for any vertices either untracked,
+-- or the same group as a given group.
+-- a lower successor function is passed which is then wrapped,
+-- and each returned vertex is looked up in the vertex-to-group mapping.
+-- those entries which either match the expected group are returned.
+-- optionally, any vertices missing a group (i.e. they're not tracked yet for whatever reason)
+-- are saved in an orphan table.
+-- groupless vertices do not participate in or affect the search while running,
+-- per the rules for the successor set out by bfmap.
+local mk_repair_successor = function(groupmap, expectedgroup, lowersuccessor, orphanset)
+	return function(vertex, vhash)
+		local results = {}
+		local successors = lowersuccessor(vertex, vhash)
+		
+		for shash, successor in pairs(successors) do
+			local group = groupmap:get(shash)
+			if group == expectedgroup then
+				results[shash] = successor
+			else
+				if group == nil and orphanset then orphanset[shash] = successor end
+			end
+		end
+
+		return results
+	end
+end
+
+-- visitor for the repair operation:
+-- clear out found vertices from a provided set.
+-- used below in the repair operation to clear away reachable vertices;
+-- any that remain are not reachable by the search.
+local mk_repair_visitor = function(clearset)
+	return function(vertex, vhash)
+		clearset[vhash] = nil
+	end
+end
+
+-- when a vertex already in a group gets modified,
+-- we need to determine if the vertices are all still connected together.
+-- pick an arbitary vertex in the group and run a breadth-first flood search,
+-- marking each vertex found in the group's current set.
+-- if at the end any vertices remain, those have become disconnected and become a new group.
+-- repeat the search procedure until either all those vertices have been found,
+-- or they have been determined to not exist any more.
+local repair = function(self, group)
+	-- can't do anything if group contains no elements.
+	local ihash, ivertex = group:next()
+	if not ihash then
+		self:warning("undefined.repair_on_empty_group")
+		return false
+	end
+
+	local clearset = group:copyentries()
+	local orphanset = {}
+	-- TODO: in finished callback, warn about remaining frontiers
+	local successor = mk_repair_successor(self.maptogroup, group, self.successor, orphanset)
+	local visitor = mk_repair_visitor(clearset)
+	-- run the search up to the group size limit.
+	-- as the search can only traverse vertices in this group,
+	-- if the graph remains intact this should be able to flood to all of them.
+	-- any that become unreachable after the search spawn new searches,
+	-- to determine the graph subsets for the newly split groups.
+	local search = bfmap.new
 end
 
 
