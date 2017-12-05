@@ -36,6 +36,13 @@ self = {
 		-- this guarded map has no remove callback.
 		-- group tables are guarded maps also;
 		-- their remove operation warns if there is an attempt to remove a non-existant vertex.
+	grouplimit = 20,
+		-- size limit on groups
+		-- flood search operations are guaranteed to not run past this many found vertices.
+	successor = function,
+		-- successor function as described by bfmap for this kind of graph.
+	testvertex = function,
+		-- testvertex also as understood by bfmap.
 }
 ]]
 local guardedmap = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.datastructs.guardedmap")
