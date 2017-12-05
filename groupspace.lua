@@ -96,6 +96,25 @@ local mk_repair_visitor = function(clearset)
 	end
 end
 
+-- onfinished callback for repair operation.
+-- groups should never be allowed to grow beyond the group limit anyway,
+-- therefore a search with that size as it's limit should be able to reach them all,
+-- with no frontiers left in the search queue.
+-- if any *are* found (in other words, the search ended due to a limit),
+-- raise a warning.
+local mk_repair_onfinished = function(self)
+	local parent = self
+	return function(remainder_iterator)
+		local count = 0
+		for hash, vertex in remainder_iterator do
+			count = count + 1
+		end
+		if count > 0 then
+			parent:warning("repair.unreached_search_frontiers")
+		end
+	end
+end
+
 -- when a vertex already in a group gets modified,
 -- we need to determine if the vertices are all still connected together.
 -- pick an arbitary vertex in the group and run a breadth-first flood search,
