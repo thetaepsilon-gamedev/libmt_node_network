@@ -110,7 +110,7 @@ local mk_repair_onfinished = function(self)
 			count = count + 1
 		end
 		if count > 0 then
-			parent:warning("repair.unreached_search_frontiers")
+			parent:warning({n="repair.unreached_search_frontiers", args={count=count}})
 		end
 	end
 end
@@ -126,7 +126,7 @@ local repair = function(self, group)
 	-- can't do anything if group contains no elements.
 	local ihash, ivertex = group:next()
 	if not ihash then
-		self:warning("undefined.repair_on_empty_group")
+		self:warning({n="undefined.repair_on_empty_group", args={group=group}})
 		return false
 	end
 
@@ -174,7 +174,7 @@ local update = function(self, vertex, vhash)
 				touchinggroups[shash] = group
 			end
 		else
-			self:warning("unhandled.untracked_successor")
+			self:warning({n="unhandled.untracked_successor", args={shash=shash}})
 		end
 	end
 	-- if none of the successors were groups with room left,
