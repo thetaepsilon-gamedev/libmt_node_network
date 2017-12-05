@@ -132,15 +132,22 @@ local repair = function(self, group)
 
 	local clearset = group:copyentries()
 	local orphanset = {}
-	-- TODO: in finished callback, warn about remaining frontiers
+	local oncomplete = self:mk_repair_onfinished()
 	local successor = mk_repair_successor(self.maptogroup, group, self.successor, orphanset)
 	local visitor = mk_repair_visitor(clearset)
+	local callbacks = {
+		visitor = visitor,
+		testvertex = self.testvertex,
+		finished = oncomplete,
+	}
+	local opts = {vertexlimit = self.grouplimit}
 	-- run the search up to the group size limit.
 	-- as the search can only traverse vertices in this group,
 	-- if the graph remains intact this should be able to flood to all of them.
 	-- any that become unreachable after the search spawn new searches,
 	-- to determine the graph subsets for the newly split groups.
-	local search = bfmap.new
+	local search = bfmap.new(ivertex, ihash, self.successor, callbacks, opts)
+	while search.advance() do end
 end
 
 
