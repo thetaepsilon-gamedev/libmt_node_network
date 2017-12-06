@@ -92,13 +92,17 @@ local mk_repair_successor = function(groupmap, expectedgroup, lowersuccessor, or
 		return results
 	end
 end
+local mk_repair_successor_auto = function(self, expectedgroup, orphanset)
+	return mk_repair_successor(self.maptogroup, expectedgroup, self.successor, orphanset)
+end
 
 -- visitor for the repair operation:
 -- clear out found vertices from a provided set.
 -- used below in the repair operation to clear away reachable vertices;
 -- any that remain are not reachable by the search.
-local mk_repair_visitor = function(clearset)
+local mk_repair_visitor = function(clearset, foundset)
 	return function(vertex, vhash)
+		foundset[vhash] = vertex
 		clearset[vhash] = nil
 	end
 end
@@ -122,6 +126,41 @@ local mk_repair_onfinished = function(self)
 	end
 end
 
+
+
+-- run searches from a set of vertexes until they are all discovered.
+-- if an isolated vertex is found while starting a search from another isolated vertex,
+-- it is removed before the search picks the next vertex.
+-- the found vertices get added to a new group;
+-- then the next vertex is picked out (if any) and the process repeats.
+-- each isolated set of vertices becomes a new group.
+local recover_vertices = function(self, clearset)
+	local discover_successor = self:mk_repair_successor(nil, nil)
+	local testvertex = self.testvertex
+	local opts = { vertexlimit=self.grouplimit }
+
+	while true do
+		local hash, vertex = next(clearset)
+		if not hash then break end
+
+		local foundset = {}
+		local discover_visitor = mk_repair_visitor(clearset, foundset)
+		local callbacks = { testvertex=testvertex, visitor=discover_visitor }
+		-- we rely on the search algorithm testing the vertex for validity for us.
+		-- therefore if the foundset is empty, don't bother creating a new group,
+		-- and just forget about the invalid vertex.
+		local search = bfmap.new(vertex, hash, discover_successor, callbacks, opts)
+		while search.advance() do end
+		if next(foundset) == nil then
+			clearset[hash] = nil
+		else
+			self:newgroupbatch(foundset)
+		end
+	end
+end
+
+
+
 -- when a vertex already in a group gets modified,
 -- we need to determine if the vertices are all still connected together.
 -- pick an arbitary vertex in the group and run a breadth-first flood search,
@@ -129,6 +168,7 @@ end
 -- if at the end any vertices remain, those have become disconnected and become a new group.
 -- repeat the search procedure until either all those vertices have been found,
 -- or they have been determined to not exist any more.
+-- after calling this function, group may no longer be valid.
 local repair = function(self, group)
 	-- can't do anything if group contains no elements.
 	local ihash, ivertex = group:next()
@@ -138,10 +178,11 @@ local repair = function(self, group)
 	end
 
 	local clearset = group:copyentries()
+	local foundset = {}
 	local orphanset = {}
 	local oncomplete = self:mk_repair_onfinished()
-	local successor = mk_repair_successor(self.maptogroup, group, self.successor, orphanset)
-	local visitor = mk_repair_visitor(clearset)
+	local successor = self:mk_repair_successor(group, orphanset)
+	local visitor = mk_repair_visitor(clearset, foundset)
 	local callbacks = {
 		visitor = visitor,
 		testvertex = self.testvertex,
@@ -155,6 +196,16 @@ local repair = function(self, group)
 	-- to determine the graph subsets for the newly split groups.
 	local search = bfmap.new(ivertex, ihash, self.successor, callbacks, opts)
 	while search.advance() do end
+
+	-- if there are any unreachable groups, the group has split, so discard the old group.
+	-- searches will then spread out across previously untracked vertices too.
+	-- FIXME: validity test should be ran here!
+	if next(clearset) == nil then return end
+	self:unmap_group(group)
+	self:newgroupbatch(foundset)
+
+	-- for the remaining vertices that got isolated, keep spawning searches until they are all covered.
+	self:recover_vertices(clearset)
 end
 
 
