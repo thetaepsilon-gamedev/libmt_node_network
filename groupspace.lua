@@ -168,7 +168,8 @@ end
 -- if at the end any vertices remain, those have become disconnected and become a new group.
 -- repeat the search procedure until either all those vertices have been found,
 -- or they have been determined to not exist any more.
--- after calling this function, group may no longer be valid.
+-- after calling this function, group may no longer be valid;
+-- if this function returns true, then that is the case.
 local repair = function(self, group)
 	-- can't do anything if group contains no elements.
 	local ihash, ivertex = group:next()
@@ -200,12 +201,15 @@ local repair = function(self, group)
 	-- if there are any unreachable groups, the group has split, so discard the old group.
 	-- searches will then spread out across previously untracked vertices too.
 	-- FIXME: validity test should be ran here!
-	if next(clearset) == nil then return end
+	if next(clearset) == nil then return false end
 	self:unmap_group(group)
 	self:newgroupbatch(foundset)
 
 	-- for the remaining vertices that got isolated, keep spawning searches until they are all covered.
 	self:recover_vertices(clearset)
+
+	-- let the caller know that the group was deleted
+	return true
 end
 
 
