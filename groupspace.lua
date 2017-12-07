@@ -214,33 +214,30 @@ end
 
 
 
-local update = function(self, vertex, vhash)
-	-- firstly remove any existing information about this vertex
-	-- this should clear existing group mappings etc...
-	local oldgroup = clearvertex(self, vhash)
-
-	-- ..so that here we can add the vertex as if new.
+-- adds an untracked but "alive" vertex.
+-- attempts to find a group to add it to by looking at it's successors,
+-- or creates a new one if all the neighbour groups are at the limit.
+local add_new = function(self, vertex, vhash)
 	local successors = self.successor(vertex, vhash)
 
 	-- we want to see if any groups touching this vertex has room left.
 	-- if so, add the vertex to that group directly.
-	-- otherwise, or if already added to a group,
-	-- make a note of the found group being adjacent to the added one.
+	-- otherwise, create a new group for it.
 	-- (currently unhandled: deal with untracked adjacent vertices)
 	local foundgroup = nil
 	local touchingvertices = {}
 	local touchinggroups = {}
 	for shash, successor in pairs(successors) do
-		local group = self:getgroup(shash)
+		local sgroup = self:whichgroup(shash)
 		-- argh, why does lua not have continue for loops!?
-		if group then
-			local canfit = (group:size() < self.grouplimit)
+		if sgroup then
+			local canfit = (sgroup:size() < self.grouplimit)
 			if not foundgroup and canfit then
-				self:addtogroup(group, shash, successor)
-				foundgroup = group
+				self:addtogroup(sgroup, shash, successor)
+				foundgroup = sgroup
 			else
 				touchingvertices[shash] = successor
-				touchinggroups[shash] = group
+				touchinggroups[shash] = sgroup
 			end
 		else
 			self:warning({n="unhandled.untracked_successor", args={shash=shash}})
@@ -249,8 +246,47 @@ local update = function(self, vertex, vhash)
 	-- if none of the successors were groups with room left,
 	-- then create a new one and add the vertex to it.
 	-- the touching groups will all have been recorded above.
-	foundgroup = self:newgroupwith(vertex, vhash)
+	foundgroup = foundgroup or newgroupwith(self, vertex, vhash)
 
 	-- update the list of groups that this vertex touches.
 	self.ropegraph:update(vertex, vhash, foundgroup, touchingvertices, touchinggroups)
+
+	return true
+end
+
+
+
+-- updates a vertex's internal tracking information.
+-- this can be used when a vertex's edges have been modified,
+-- e.g. due to an MT node being rotated by the screwdriver or some other node-local change.
+-- also handles removal; can be called with a "just deleted" vertex,
+-- and the testvertex operation is used to detect this.
+-- things to consider here:
+--	* changes in edges that cross group boundaries are handled by the rope graph.
+--	* changes in edges to vertices in the same group may cause the group to fragment;
+--		see repair() above.
+--	* TODO changes in edges to untracked successor vertices are currently ignored.
+local update = function(self, vertex, vhash)
+	-- determine if the vertex under question is currently tracked.
+	local group = self:whichgroup(vhash)
+	local tracked = (group ~= nil)
+	-- check also if the vertex reference is still valid.
+	local isalive = self.testvertex(vertex, vhash)
+
+--[[
+	Cases to handle here:
+	* untracked and dead (isalive == false): ignore it, invalid vertices are not part of the graph.
+	* untracked and alive: vertex is new, try to insert it into a group. no group repair operation needed.
+	* already tracked (dead or alive):
+		existing connectivity info may have changed, so run the repair operation.
+]]
+	if tracked then
+		return update_existing(self, vertex, vhash, group, isalive)
+	else	-- if untracked
+		if alive then
+			return add_new(self, vertex, vhash)
+		else
+			return false
+		end
+	end
 end
