@@ -256,6 +256,32 @@ end
 
 
 
+-- update an existing tracked vertex, which may be alive or have become "dead"
+-- (that is, testvertex() returns false for it).
+local update_existing = function(self, vertex, vhash, vgroup, isalive)
+	-- updating a vertex may mean the successors it connects to has changed.
+	-- to check that the group is still intact, we run a search (see repair() above).
+	-- however, first we must locate a still-valid vertex to start from,
+	-- else the successor may exhibit undefined behaviour.
+	-- in addition, remove the vertex if it is dead.
+
+	if not isalive
+		-- if dead, clear the vertex from the group.
+		clearvertex(self, vhash, vgroup)
+	end
+
+	-- then let the repair operation locate a valid vertex to search from.
+	-- repair() above returns false if the group was empty
+	-- (which it may do if the triggering vertex was the last member of the group).
+	-- in that event, take any steps to completely de-register the group and de-allocate it.
+	-- FIXME WIP
+	-- TODO: what about ropegraph updates here?
+
+	return true
+end
+
+
+
 -- updates a vertex's internal tracking information.
 -- this can be used when a vertex's edges have been modified,
 -- e.g. due to an MT node being rotated by the screwdriver or some other node-local change.
