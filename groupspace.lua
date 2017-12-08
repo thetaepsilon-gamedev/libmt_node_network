@@ -361,5 +361,6 @@ local construct = function(impl, opts)
 
 	return self
 end
+i.new = construct
 
 return i
