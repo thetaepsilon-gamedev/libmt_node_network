@@ -7,4 +7,5 @@ return {
 	},
 	worldcache = _mod.modules.worldcache,
 	ropegraph = _mod.modules.ropegraph,
+	groupspace = _mod.modules.groupspace,
 }
