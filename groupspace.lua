@@ -350,14 +350,20 @@ local dname = "groupspace.new() "
 local defaults = {}
 local checkc = checkers.mk_interface_defaulter(dname.."callbacks table invalid:", callback_signatures, defaults)
 
+
+
+local prototype = {
+	update = update,
+	whichgroup = whichgroup,
+}
+
 -- WIP, nowhere near complete!
 local construct = function(impl, opts)
 	opts = opts or {}
 
-	local self = {}
+	local self = shallowcopy(prototype)
 	self.callbacks = checkc(opts.callbacks)
 	self.ropegraph = new_rg()
-	self.update = update
 
 	return self
 end
