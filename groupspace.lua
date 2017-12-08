@@ -338,6 +338,14 @@ end
 
 
 
+-- internal warning function.
+-- for now, just call the debugger
+local warning = function(self, ev)
+	return self.debugger(ev)
+end
+
+
+
 -- external interface follows
 local i = {}
 
@@ -360,6 +368,7 @@ local checko = checkers.mk_interface_defaulter(dname.."passed optionals invalid:
 local prototype = {
 	update = update,
 	whichgroup = whichgroup,
+	warning = warning,
 }
 
 -- WIP, nowhere near complete!
