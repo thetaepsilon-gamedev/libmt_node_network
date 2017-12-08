@@ -66,6 +66,23 @@ end
 
 
 
+-- entire-group discard operation:
+-- removes mappings for every vertex in the group from the maptogroup table,
+-- then updates the ropegraph for each vertex with a nil set to clear all vertices.
+-- TODO: callback invocations for group destruction?
+local unmap_group = function(self, group)
+	local m = self.maptogroup
+	local r = self.ropegraph
+	local empty = {}
+	for vhash, vertex in group:iterator() do
+		m:remove(vhash)
+		-- ropegraph guaranteed to completely forget the vertex if nil sets passed
+		r:update(vertex, vhash, group, empty, empty)
+	end
+end
+
+
+
 -- successor function for the repair operation that looks for any vertices either untracked,
 -- or the same group as a given group.
 -- a lower successor function is passed which is then wrapped,
@@ -265,7 +282,7 @@ local update_existing = function(self, vertex, vhash, vgroup, isalive)
 	-- else the successor may exhibit undefined behaviour.
 	-- in addition, remove the vertex if it is dead.
 
-	if not isalive
+	if not isalive then
 		-- if dead, clear the vertex from the group.
 		clearvertex(self, vhash, vgroup)
 	end
