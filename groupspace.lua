@@ -380,6 +380,7 @@ local construct = function(impl, opts)
 	self.debugger = debugger
 	self.callbacks = checkc(opts.callbacks)
 	self.ropegraph = new_rg()
+	self.maptogroup = guardedmap.new()
 
 	return self
 end
