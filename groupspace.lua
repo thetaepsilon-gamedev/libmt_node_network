@@ -363,6 +363,15 @@ local opts_signatures = {
 }
 local checko = checkers.mk_interface_defaulter(dname.."passed optionals invalid:", opts_signatures, defaults)
 
+-- graph definition functions: successor and testvertex
+-- unlike the above this *needs* to be valid for there to even be a graph to access.
+local impl_signatures = {
+	"successor",
+	"testvertex",
+}
+local prefix = dname.."passed graph implementation invalid:"
+local checki = checkers.mk_interface_check(impl_signatures, prefix)
+
 
 
 local prototype = {
@@ -373,6 +382,7 @@ local prototype = {
 
 -- WIP, nowhere near complete!
 local construct = function(impl, opts)
+	impl = checki(impl)
 	opts = checko(opts)
 	local debugger = opts.debugger
 
