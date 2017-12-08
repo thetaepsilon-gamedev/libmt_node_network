@@ -349,6 +349,11 @@ local callback_signatures = {
 local dname = "groupspace.new() "
 local defaults = {}
 local checkc = checkers.mk_interface_defaulter(dname.."callbacks table invalid:", callback_signatures, defaults)
+-- use interface checking for optional callbacks as well
+local opts_signatures = {
+	"debugger",
+}
+local checko = checkers.mk_interface_defaulter(dname.."passed optionals invalid:", opts_signatures, defaults)
 
 
 
@@ -359,9 +364,11 @@ local prototype = {
 
 -- WIP, nowhere near complete!
 local construct = function(impl, opts)
-	opts = opts or {}
+	opts = checko(opts)
+	local debugger = opts.debugger
 
 	local self = shallowcopy(prototype)
+	self.debugger = debugger
 	self.callbacks = checkc(opts.callbacks)
 	self.ropegraph = new_rg()
 
