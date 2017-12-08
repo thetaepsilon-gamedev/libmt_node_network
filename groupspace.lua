@@ -49,6 +49,7 @@ local guardedmap = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.data
 local bfmap = mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.bfmap")
 local ropegraph = mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.ropegraph")
 local tableutils = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.tableutils")
+local checkers = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.check")
 local shallowcopy = tableutils.shallowcopy
 
 
@@ -341,11 +342,24 @@ end
 local i = {}
 
 local new_rg = ropegraph.new
+
+-- callback table checking
+local callback_signatures = {
+}
+local dname = "groupspace.new() "
+local defaults = {}
+local checkc = checkers.mk_interface_defaulter(dname.."callbacks table invalid:", callback_signatures, defaults)
+
 -- WIP, nowhere near complete!
-local construct = function(opts)
+local construct = function(impl, opts)
+	opts = opts or {}
+
 	local self = {}
+	self.callbacks = checkc(opts.callbacks)
 	self.ropegraph = new_rg()
 	self.update = update
+
+	return self
 end
 
 return i
