@@ -47,6 +47,7 @@ self = {
 ]]
 local guardedmap = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.datastructs.guardedmap")
 local bfmap = mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.bfmap")
+local ropegraph = mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.ropegraph")
 local tableutils = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.tableutils")
 local shallowcopy = tableutils.shallowcopy
 
@@ -333,3 +334,18 @@ local update = function(self, vertex, vhash)
 		end
 	end
 end
+
+
+
+-- external interface follows
+local i = {}
+
+local new_rg = ropegraph.new
+-- WIP, nowhere near complete!
+local construct = function(opts)
+	local self = {}
+	self.ropegraph = new_rg()
+	self.update = update
+end
+
+return i
