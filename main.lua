@@ -23,7 +23,7 @@ dofile(dir.."util.lua")
 local bfmap = mtrequire(_mod.base..".bfmap")
 _mod.modules.bfmap = bfmap
 
-_mod.modules.ropegraph = dofile(dir.."ropegraph.lua")
+_mod.modules.ropegraph = mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.ropegraph")
 dofile(dir.."ropegraph_test.lua")
 _mod.modules.groupspace = dofile(dir.."groupspace.lua")
 

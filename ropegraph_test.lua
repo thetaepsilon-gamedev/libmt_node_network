@@ -2,7 +2,7 @@ local checkers = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.check"
 local mkassert = checkers.mkassert
 local listequal = checkers.listequaltest
 
-local m = _mod.modules.ropegraph
+local m = mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.ropegraph")
 
 local mkemptychecker = function(caller)
 	return function(tbl, label)
