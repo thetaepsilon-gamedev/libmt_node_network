@@ -333,7 +333,7 @@ local update = function(self, vertex, vhash)
 	if tracked then
 		return update_existing(self, vertex, vhash, group, isalive)
 	else	-- if untracked
-		if alive then
+		if isalive then
 			return add_new(self, vertex, vhash)
 		else
 			return false
