@@ -1,29 +1,34 @@
 --[[
 Similar to vertex spaces, but written with different assumptions in mind.
-Instead of whole graphs where adding link between them indiscriminately merges them,
+Instead of whole graphs where adding links between alwayys merges them,
 vertexes belong to groups which may be subsets of a full interconnected graph.
 
 The successor function understood by the search algorithm remains,
 but it is possible that connections between vertices span between groups.
-As usual, successor returns a table mapping from hashes to values for each vertex.
+As usual, successor returns a table mapping hashes to values for each vertex.
 
 That said, there are still some rules involved.
-In a given group space, there is a 1:1 mapping to/from a given tracked vertex and it's group at all times.
+In a given group space, there is always 1:1 group:tracked vertex mapping,
+however it is possible some vertices are not tracked.
 Groups have a limit on their size (call it "L") -
-Adding a vertex with connections to a group's vertices will add that vertex to the group only if it fits,
-otherwise a new group forms.
-Like the vertex space, a complete split between two parts of a group causes the group to split apart,
-however the "still connected" search does not propogate past group boundaries.
-So, if the only "bridge" between two disconnected halves of a group is via another group's nodes,
-the split will still occur.
+When adding a vertex, it's current neighbours are checked for adjacent groups;
+the algorithm will attempt to add a vertex to any such group,
+however if none of them have room (i.e. their size >= L)
+then the vertex will be placed into it's own new group.
 
-The point of this grouping is to place limits on how far into the graph a connectivity search will proceed.
-Combined with a regular vertex space (or maybe even another group space),
-The connections between neighbouring groups can be tracked to form a higher-level connectivity graph.
-When a group is modifed, the search will only proceed at most L vertices,
-*then* the higher-level graph is modified.
-In most cases, unless a group splits apart, the higher-level graph doesn't need modifying,
-yielding amortised O(1) performance.
+Like the old vertex space, removal of a vertex triggers a connectivity check,
+with the exception that any vertex remaining in the group may be the origin.
+The check searches the graph to check that the other vertices remain reachable,
+however the "still connected" search does not propogate past group boundaries.
+So, if parts of a group become isolated with another group in the way,
+the group split will still occur.
+
+The point of these boundaries is to prevent excessive traversal;
+a long-running search inside a large graph could easily block the server.
+Instead, only groups are tracked and then a "rope graph" (see ropegraph.lua)
+is used to track which groups touch each other.
+This in theory allows the same tracking of complete graphs as the old code did,
+but without the danger of starting a search re-calculating hundreds of nodes.
 ]]
 
 --[[
