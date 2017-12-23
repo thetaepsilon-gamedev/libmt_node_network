@@ -392,6 +392,8 @@ local construct = function(impl, opts)
 	local debugger = opts.debugger
 
 	local self = shallowcopy(prototype)
+	self.successor = impl.successor
+	self.testvertex = impl.testvertex
 	self.debugger = debugger
 	self.callbacks = checkc(opts.callbacks)
 	self.ropegraph = new_rg()
