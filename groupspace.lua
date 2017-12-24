@@ -90,6 +90,37 @@ end
 
 
 
+-- inner group construction.
+local gm_on_collision = function(self, e, k, oldv, newv)
+	self.parent:warning({n="inconsistency.hash_collision", args={offending_key=k}})
+end
+local gm_on_remove_missing = function(self, e, k)
+	self.parent:warning({n="inconsistency.remove_missing", args={offending_key=k}})
+end
+local gm_group_callbacks = {
+	on_remove_missing = gm_on_remove_missing,
+	on_collision = gm_on_collision,
+}
+local mk_gm_group_callbacks = function(parent)
+	local i = shallowcopy(gm_group_callbacks)
+	i.parent = parent
+	return i
+end
+local newgroupwith = function(self, vertex, hash)
+	local callbacks = mk_gm_group_callbacks(self)
+	local group = guardedmap.new(callbacks)
+	-- remember that hashes are the keys used for equality,
+	-- hence the backwards order when used for tables.
+	group:add(hash, vertex)
+
+	-- update the mapping table so that vertex can be traced back to a group.
+	-- TODO: callback invocation here
+	self.maptogroup:add(hash, group)
+	return group
+end
+
+
+
 -- successor function for the repair operation that looks for any vertices either untracked,
 -- or the same group as a given group.
 -- a lower successor function is passed which is then wrapped,
