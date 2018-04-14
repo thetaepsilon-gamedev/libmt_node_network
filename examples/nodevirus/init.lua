@@ -41,7 +41,7 @@ local make_node_virus = function(initialpos, offsets, victimname, replacement, m
 		testvertex = function(pos) return minetest.get_node(pos).name == victimname end
 	end
 
-	callbacks = shallowcopy(callbacks)
+	callbacks = callbacks and shallowcopy(callbacks) or {}
 	local oldvisitor = callbacks.visitor
 	local visitor = function(pos)
 		minetest.swap_node(pos, replacement)
