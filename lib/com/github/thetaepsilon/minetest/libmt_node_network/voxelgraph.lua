@@ -13,28 +13,28 @@ Therefore, in order to determine the valid neighbours of a given node, we need t
 * whether those nodes are allowed to connect back on that side (the direction check)
 
 The structures below allow determining this.
-The successor function is passed a structure:
+The successor function's vertex structure looks like the following:
 vertex = {
 	grid = gridimpl,	-- *
-	position = { ... },	-- not assumed to be MT xyz vectors!
+	position = { x, y, z },
 }
-The successor queries the grid for the node at that position, 
+The hashes produced by this successor are a contatenation of tostring() on the grid object,
+followed by a string representation of the XYZ coordinates.
+In order to prevent address re-use problems if a grid object happens to vanish mid-search,
+a given successor instance maintains references to all seen grids while it is still alive. 
+
+The successor queries the vertex's grid for the node at the vertex position, 
 then looks up the node name in it's internal data structures.
 The candidate neighbours are retrieved either from a presets table
 or by dynamically calling a function registered in a callbacks table
 (which can e.g. examine metadata).
-Then, the successor code asks the grid for the result position for each candidate direction,
-as well as the target node's data and grid*.
+In either case, the result is a list-like table,
+which holds relative vectors of nodes to check, e.g. {x=0,y=1,z=0} for the node above.
+
+Then, the successor code asks the grid object for the resulting grid and position on that grid*,
+then calls that grid with that position to retrieve node data.
 The directionality data for that node is again looked up by preset table or callback.
 If the direction is allowed, then that node's position is added to the successor set.
-
-For both neighbour and directionality data,
-it is assumed that the resulting set (whether found statically or dynamically generated)
-
-
-The testvertex function works by seeing if any kind of neighbour data exists for the node name;
-if not, it is assumed to not be one of the nodes that participates.
-This can be used to detect when a node has been removed and should be forgotten by the graph tracking.
 
 * The intent here is to be as general as possible,
 and not lock out tricks that break under the assumption of a singleton euclidian grid.
@@ -46,58 +46,25 @@ which would be freely rotateable and would not relate directly to "global" co-or
 This means that in general any callback functions MUST NOT use any minetest.* functions with world side effects,
 such as trying to spawn an entity assuming the coordinates map to the global grid.
 ]]
+
 --[[
--- requirements of a "linkedgrid":
+-- @INTERFACE linkedgrid
 grid = {
 	get = function(self, pos),
-		-- must return a table with at least a "name" member.
+		-- must return a table with at least a "name" member, like minetest.get_node().
 	getmeta = function(self, pos),
 		-- called to retrieve a meta ref to pass to the callback if one needs to be called.
 		-- returns a metadata ref as in worldcache.lua;
 		-- only required to support the get/set_* operations and flush() to commit.
 	neighbour = function(self, pos, direction),
-		-- direction is an offset vector (determined by neighbour data lookup).
+		-- direction is an offset vector from pos.
 		-- must return the following:
-		-- * target node data
-		-- * actual result position (which will be returned in the successor set)
-		-- * an equality-comparable representation of the direction back to the origin vertex.
-		--	this is used to index into the offsets tables below.
+		-- * actual result position
 		-- * target grid (which may not be the same as the grid on which the method was invoked)
-		--	target grid must obey the same constraints as this one,
-		--	and use a coordinate system compatible with the direction/neighbour offset data.
-	hashpos = function(pos),
-		-- a pure function which must return an equality-comparable unique representation of a position.
 }
 ]]
 
---[[
-self = {
-	neighbourdata = {
-		"somenodename" = {
-			dir1hash = dir1,
-			...
-		},
-		...
-	}
-	-- table used to look up static list of nodes
-	-- takes precedence over the below.
-	-- "dirhash" is the representation of the reverse direction as per the grid description above.
 
-	neighbourfn = {
-		"anothernode" = function(nodedata, metaref)
-			-- the function should examine the provided node data only.
-	}
 
-	-- if neighbourdata is present for the target node,
-	-- that is indexed by the direction hash returned by the grid to see if any data is present.
-	-- if so, the node is assumed to be allowed to connect back to this one.
-	-- if not, a function is looked up in the below table and again called with that direction hash;
-	-- the result for the direction check is then the outcome of that function.
-	directionfn = {
-		-- a test function expected to return true/false to indicate an allowed connection direction.
-		"anothernode" = function(nodedata, metaref, direction),
-		...
-	}
-}
-]]
+
 
