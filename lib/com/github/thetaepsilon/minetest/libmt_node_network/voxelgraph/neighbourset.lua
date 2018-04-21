@@ -1,6 +1,3 @@
-local coords = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.coords")
-local tableutils = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.tableutils")
-local shallowcopy = tableutils.shallowcopy
 local check = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.check")
 --[[
 voxelgraph: neighbour candidate set determination
@@ -18,7 +15,6 @@ Look-up table object: create this and pass it to a voxelgraph successor to provi
 Ensures that added entries (if using static tables) are only integer node offsets.
 Please note that faking this and returning fractional values is considered undefined behaviour.
 ]]
-local sixsides = coords.adjacent_offsets
 local fncheck = check.mkfnexploder("neighbourtable:add_custom_hook()")
 local mk_neighbour_lut = function()
 	local entries = {}
