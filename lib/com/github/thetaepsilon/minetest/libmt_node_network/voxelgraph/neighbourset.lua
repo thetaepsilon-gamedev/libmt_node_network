@@ -36,18 +36,6 @@ local mk_neighbour_lut = function()
 	end
 
 	local i = {}
-	-- adds a fixed set of neighbours.
-	-- note this does not take into account param2 rotation.
-	i.add_fixed_set = function(self, name, offsets)
-		local n = shallowcopy(offsets)
-		n.uses_param2 = false
-		assert_insert(name, n)
-	end
-	-- helper alias for the above:
-	-- return all six immediately adjacent sides.
-	i.add_allfaces = function(self, name)
-		return self:add_fixed_set(name, sixsides)
-	end
 
 	--[[
 	register a custom function to determine candidate neighbours.
@@ -72,7 +60,6 @@ local mk_neighbour_lut = function()
 
 	--[[
 	retrieve data about a node once loaded from a grid.
-	metadata is only accessed in the event that the node has a custom hook.
 	returns a list of candidate vectors, or nil and an error code;
 	error()s by hooks are currently propogated.
 	]]
