@@ -65,11 +65,7 @@ local mk_neighbour_lut = function()
 	]]
 	i.query_neighbour_set = function(self, nodedata, nodemeta)
 		local entry = entries[nodedata.name]
-		local t = type(entry)
-		if (t == "table") then
-			-- already a list, just return that.
-			return entry
-		elseif (t == "function") then
+		if entry then
 			-- call hook to determine set
 			local candidates = entry(nodedata, nodemeta)
 			if (not candidates) then
