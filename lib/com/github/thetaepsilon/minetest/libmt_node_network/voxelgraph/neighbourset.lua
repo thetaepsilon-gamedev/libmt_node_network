@@ -5,16 +5,16 @@ The first phase of the voxel graph successor is to examine a node,
 and determine which adjacent nodes are candidates for successors in a search.
 This has nothing to do with checking said nodes to see if they are a certain type;
 this is simply "without any extra information, which sides can you connect on?".
+
+The below object is used to hold such registrations for nodes.
+It can have handler functions installed which will be invoked
+when it is queried for the neighbours of a given node,
+based on the node's name.
 ]]
 local i = {}
 
 
 
---[[
-Look-up table object: create this and pass it to a voxelgraph successor to provide the necessary data.
-Ensures that added entries (if using static tables) are only integer node offsets.
-Please note that faking this and returning fractional values is considered undefined behaviour.
-]]
 local fncheck = check.mkfnexploder("neighbourtable:add_custom_hook()")
 local mk_neighbour_lut = function()
 	local entries = {}
@@ -35,14 +35,12 @@ local mk_neighbour_lut = function()
 
 	--[[
 	register a custom function to determine candidate neighbours.
-	NB: this function should *not* check nearby nodes!
-	therefore it is not provided the grid reference.
-	it should simply return a list of xyz offset vectors.
-	(for a way for the *source node* to filter based on node type,
-	see the filter hook.)
-	for example, this function could examine a node's metadata
-	to see which of it's sides are "enabled",
-	and only return those in the list.
+	NB: this function is not for checking nearby nodes and doesn't get a position,
+	but is provided node data (get_node()) and meta ref.
+	It should simply return a table mapping keys to XYZ MT vectors.
+	The keys can be anything; they are preserved elsewhere,
+	and can be used to tag connections to other nodes with extra data later.
+
 	-- function signature:
 	local candidates = callback(nodedata, nodemetaref)
 	-- only get_* calls are specified on nodemetaref,
@@ -55,9 +53,11 @@ local mk_neighbour_lut = function()
 	end
 
 	--[[
-	retrieve data about a node once loaded from a grid.
+	retrieve neighbour set based on node data.
 	returns a list of candidate vectors, or nil and an error code;
 	error()s by hooks are currently propogated.
+	node data is only required to have .name here;
+	nodemeta is not touched by this function, but may be by callbacks.
 	]]
 	i.query_neighbour_set = function(self, nodedata, nodemeta)
 		local entry = entries[nodedata.name]
