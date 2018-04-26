@@ -1,3 +1,6 @@
+local errors =
+	mtrequire("com.github.thetaepsilon.minetest.libmthelpers.errors")
+
 local check = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.check")
 --[[
 voxelgraph: neighbour candidate set determination
@@ -16,6 +19,7 @@ local i = {}
 
 
 local fncheck = check.mkfnexploder("neighbourtable:add_custom_hook()")
+local eduplicate = errors.stdcodes.register.duplicate
 local mk_neighbour_lut = function()
 	local entries = {}
 	local maybe_insert = function(k, v)
@@ -27,7 +31,7 @@ local mk_neighbour_lut = function()
 	end
 	local assert_insert = function(k, v)
 		if not maybe_insert(k, v) then
-			error("successor neighbour table: duplicate insertion for key "..tostring(k))
+			error(eduplicate.." successor neighbour table: duplicate insertion for key "..tostring(k))
 		end
 	end
 
