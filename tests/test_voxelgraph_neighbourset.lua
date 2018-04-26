@@ -74,6 +74,16 @@ local testvecs = {
 		assert(r == testdata)
 		assert_no_data(dep, n2)
 	end,
+
+	function(dep)
+		-- test that different handlers remain separate.
+		for i = 1, 5, 1 do
+			local t = {}
+			local n = tostring(i)
+			dep:add_custom_hook(n, delay(t))
+			assert(dep:query_neighbour_set({name=n}, nil) == t)
+		end
+	end,
 }
 
 local total = #testvecs
