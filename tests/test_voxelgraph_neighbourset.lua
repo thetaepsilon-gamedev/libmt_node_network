@@ -24,7 +24,7 @@ local testhandler = delay(testdata)
 
 -- test helper: assert that the query for a given node name returns no data.
 local assert_no_data = function(set, name)
-	local data, err = set:query_neighbour_set({name=name}, nil)
+	local data, err = set:query_neighbour_set({name=name})
 	assert(data == nil)
 	assert(err == "ENODATA")
 end
@@ -70,7 +70,7 @@ local testvecs = {
 		assert_no_data(dep, n)
 		assert_no_data(dep, n2)
 		dep:add_custom_hook(n, testhandler)
-		local r = dep:query_neighbour_set({name=n}, nil)
+		local r = dep:query_neighbour_set({name=n})
 		assert(r == testdata)
 		assert_no_data(dep, n2)
 	end,
@@ -81,7 +81,7 @@ local testvecs = {
 			local t = {}
 			local n = tostring(i)
 			dep:add_custom_hook(n, delay(t))
-			assert(dep:query_neighbour_set({name=n}, nil) == t)
+			assert(dep:query_neighbour_set({name=n}) == t)
 		end
 	end,
 }
