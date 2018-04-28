@@ -40,15 +40,19 @@ local mk_neighbour_lut = function()
 	--[[
 	register a custom function to determine candidate neighbours.
 	NB: this function is not for checking nearby nodes and doesn't get a position,
-	but is provided node data (get_node()) and meta ref.
+	but is provided node data as returned by the grid;
+	this node data must at least contain a .name member,
+	though normally this object will have called the most appropriate handler anyway.
 	It should simply return a table mapping keys to XYZ MT vectors.
 	The keys can be anything; they are preserved elsewhere,
 	and can be used to tag connections to other nodes with extra data later.
 
+	NB: it is expected that the caller provide any extra data inside nodedata,
+	*including* metadata refs.
+	So it could potentially look like e.g. { name="...", param2=..., meta=... }
+
 	-- function signature:
-	local candidates = callback(nodedata, nodemetaref)
-	-- only get_* calls are specified on nodemetaref,
-	--	causing world side effects while a search runs is discouraged.
+	local candidates = callback(nodedata)
 	-- hook should return nil to indicate a graceful error instead of throwing.
 	]]
 	i.add_custom_hook = function(self, name, hook)
@@ -60,14 +64,13 @@ local mk_neighbour_lut = function()
 	retrieve neighbour set based on node data.
 	returns a list of candidate vectors, or nil and an error code;
 	error()s by hooks are currently propogated.
-	node data is only required to have .name here;
-	nodemeta is not touched by this function, but may be by callbacks.
+	node data is only required to have .name here.
 	]]
-	i.query_neighbour_set = function(self, nodedata, nodemeta)
+	i.query_neighbour_set = function(self, nodedata)
 		local entry = entries[nodedata.name]
 		if entry then
 			-- call hook to determine set
-			local candidates = entry(nodedata, nodemeta)
+			local candidates = entry(nodedata)
 			if (not candidates) then
 				return nil, "EHOOKFAIL"
 			else
