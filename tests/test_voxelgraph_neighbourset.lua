@@ -95,5 +95,3 @@ for index, vec in ipairs(testvecs) do
 	end
 end
 
-local n = "neighbourset"
-print(n..": all cases run successfully")
