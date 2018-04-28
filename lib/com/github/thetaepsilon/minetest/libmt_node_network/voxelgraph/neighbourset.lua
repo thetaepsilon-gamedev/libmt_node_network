@@ -18,6 +18,12 @@ local i = {}
 
 
 
+local getkey = function(nodedata)
+	local n = nodedata.name
+	assert(n ~= nil, "expected node data to have name field")
+	return n
+end
+
 local fncheck = check.mkfnexploder("neighbourtable:add_custom_hook()")
 local eduplicate = errors.stdcodes.register.duplicate
 local mk_neighbour_lut = function()
@@ -66,11 +72,12 @@ local mk_neighbour_lut = function()
 	error()s by hooks are currently propogated.
 	node data is only required to have .name here.
 	]]
-	i.query_neighbour_set = function(self, nodedata)
-		local entry = entries[nodedata.name]
+	i.query_neighbour_set = function(self, data)
+		local key = getkey(data)
+		local entry = entries[key]
 		if entry then
 			-- call hook to determine set
-			local candidates = entry(nodedata)
+			local candidates = entry(data)
 			if (not candidates) then
 				return nil, "EHOOKFAIL"
 			else
