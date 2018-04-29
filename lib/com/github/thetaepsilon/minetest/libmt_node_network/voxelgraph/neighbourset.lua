@@ -77,9 +77,13 @@ local mk_neighbour_lut = function()
 		local entry = entries[key]
 		if entry then
 			-- call hook to determine set
-			local candidates = entry(data)
-			if (not candidates) then
-				return nil, "EHOOKFAIL"
+			local candidates, err = entry(data)
+			if (candidates == nil) then
+				-- allow passing through explicit non-fatal "no data",
+				-- otherwise default to hook fail to catch bugs lik missing returns
+				local is_nonfatal = (err == "ENODATA")
+				local msg = (is_nonfatal and "ENODATA" or "EHOOKFAIL")
+				return nil, msg
 			else
 				return candidates
 			end

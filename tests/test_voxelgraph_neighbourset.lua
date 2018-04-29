@@ -27,6 +27,7 @@ local delay = function(v)
 end
 local testhandler = delay(testdata)
 local failhandler = function() end
+local nodatahandler = function() return nil, "ENODATA" end
 
 -- test helper: assert that the query for a given node name returns no data.
 local assert_no_data = function(set, name)
@@ -113,6 +114,18 @@ local testvecs = {
 		-- also gets passed through.
 		dep:add_custom_hook(n, function() return nil, "EHOOKFAIL" end)
 		assert_hook_fail(dep, n)
+	end,
+
+	function(dep)
+		-- a handler should be able to explicitly indicate a non-fatal "no data available",
+		-- in the same way the top-level object does if no handlers are present.
+		-- this is to allow neighbour sets to compose,
+		-- in that the handler for a given node type might be a sub-object
+		-- which further looks up handlers based on e.g. metadata keys.
+		dep:add_custom_hook(n, nodatahandler)
+		local data, err = dep:query_neighbour_set({name=n})
+		assert(data == nil)
+		assert(err == "ENODATA")
 	end,
 }
 
