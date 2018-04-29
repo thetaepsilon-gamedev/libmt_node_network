@@ -26,12 +26,20 @@ local delay = function(v)
 	end
 end
 local testhandler = delay(testdata)
+local failhandler = function() end
 
 -- test helper: assert that the query for a given node name returns no data.
 local assert_no_data = function(set, name)
 	local data, err = set:query_neighbour_set({name=name})
 	assert(data == nil)
 	assert(err == "ENODATA")
+end
+
+-- test helper: assert that a query returns EHOOKFAIL.
+local assert_hook_fail = function(set, name)
+	local data, err = set:query_neighbour_set({name=name})
+	assert(data == nil)
+	assert(err == "EHOOKFAIL")
 end
 
 
@@ -88,6 +96,23 @@ local testvecs = {
 			dep:add_custom_hook(n, delay(t))
 			assert(dep:query_neighbour_set({name=n}) == t)
 		end
+	end,
+
+	function(dep)
+		-- test that a handler which simply returns nil,
+		-- with no other error indicated, causes EHOOKFAIL.
+		-- this is to catch handler function bugs,
+		-- as a mistaken return can result in nil results.
+		dep:add_custom_hook(n, failhandler)
+		assert_hook_fail(dep, n)
+	end,
+
+	function(dep)
+		-- likewise catch that a hook that explicitly indicates EHOOKFAIL itself
+		-- (by returning it as a second value)
+		-- also gets passed through.
+		dep:add_custom_hook(n, function() return nil, "EHOOKFAIL" end)
+		assert_hook_fail(dep, n)
 	end,
 }
 
