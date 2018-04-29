@@ -1,7 +1,3 @@
-local errors =
-	mtrequire("com.github.thetaepsilon.minetest.libmthelpers.errors")
-
-local check = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.check")
 local handler_lut =
 	mtrequire("com.github.thetaepsilon.minetest.libmthelpers.datastructs.handler_lut")
 --[[
