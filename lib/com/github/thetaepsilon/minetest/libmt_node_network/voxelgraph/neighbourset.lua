@@ -2,6 +2,8 @@ local errors =
 	mtrequire("com.github.thetaepsilon.minetest.libmthelpers.errors")
 
 local check = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.check")
+local handler_lut =
+	mtrequire("com.github.thetaepsilon.minetest.libmthelpers.datastructs.handler_lut")
 --[[
 voxelgraph: neighbour candidate set determination
 The first phase of the voxel graph successor is to examine a node,
@@ -127,7 +129,7 @@ end
 local label = "successor neighbour table"
 
 local mk_neighbour_lut = function()
-	local query, register = create_handler_lut(
+	local query, register = handler_lut.mk_handler_lut(
 		getkey,
 		"neighbour_lut",
 		{ hooklabel = "neighbour hook", reglabel="add_custom_hook()" })
