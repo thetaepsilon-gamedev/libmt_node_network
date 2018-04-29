@@ -86,12 +86,19 @@ local testvecs = {
 	end,
 }
 
-local total = #testvecs
-for index, vec in ipairs(testvecs) do
-	local dep = get_test_object()
-	ok, err = pcall(vec, dep)
-	if (not ok) then
-		error("test case "..index.."/"..total.." failure: "..tostring(err))
+local run_unit_test_set = function(testdata)
+	local testvecs = testdata.testvecs
+	local get_test_object = testdata.get_dep
+
+	local total = #testvecs
+	for index, vec in ipairs(testvecs) do
+		local dep = get_test_object()
+		ok, err = pcall(vec, dep)
+		if (not ok) then
+			error("test case "..index.."/"..total.." failure: "..tostring(err))
+		end
 	end
 end
+run_unit_test_set({testvecs=testvecs, get_dep = get_test_object})
+
 
