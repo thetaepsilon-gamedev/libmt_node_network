@@ -34,6 +34,29 @@ local assert_insert = function(entries, label, k, v)
 	end
 end
 
+--[[
+Query routine:
+attempt to look up an appropriate handler based on the provided data.
+]]
+local query_inner = function(entries, data, getkey)
+	local key = getkey(data)
+	local handler = entries[key]
+	if handler then
+		local result, err = handler(data)
+		if (result == nil) then
+			-- allow passing through explicit non-fatal "no data",
+			-- otherwise default to hook fail to catch bugs like missing returns
+			local is_nonfatal = (err == "ENODATA")
+			local msg = (is_nonfatal and "ENODATA" or "EHOOKFAIL")
+			return nil, msg
+		else
+			return result
+		end
+	else
+		return nil, "ENODATA"
+	end
+end
+
 
 
 local getkey = function(nodedata)
@@ -78,23 +101,7 @@ local mk_neighbour_lut = function()
 	node data is only required to have .name here.
 	]]
 	i.query_neighbour_set = function(self, data)
-		local key = getkey(data)
-		local entry = entries[key]
-		if entry then
-			-- call hook to determine set
-			local candidates, err = entry(data)
-			if (candidates == nil) then
-				-- allow passing through explicit non-fatal "no data",
-				-- otherwise default to hook fail to catch bugs lik missing returns
-				local is_nonfatal = (err == "ENODATA")
-				local msg = (is_nonfatal and "ENODATA" or "EHOOKFAIL")
-				return nil, msg
-			else
-				return candidates
-			end
-		else
-			return nil, "ENODATA"
-		end
+		return query_inner(entries, data, getkey)
 	end
 
 	return i
