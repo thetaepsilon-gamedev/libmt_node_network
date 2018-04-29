@@ -30,7 +30,7 @@ local maybe_insert = function(entries, k, v)
 end
 local assert_insert = function(entries, label, k, v)
 	if not maybe_insert(entries, k, v) then
-		error(eduplicate.." "..label..": duplicate insertion for key "..tostring(k))
+		error(eduplicate.." "..label.." duplicate insertion for key "..tostring(k))
 	end
 end
 
@@ -57,6 +57,65 @@ local query_inner = function(entries, data, getkey)
 	end
 end
 
+-- check if a provided value is a string, or provide a default if nil.
+local string_or_missing = function(caller, label, v, default)
+	local t = type(v)
+	if t ~= nil then
+		assert(
+			t == "string",
+			caller.." "..label.."expected to be a string, got "..t)
+		return v
+	else
+		return default
+	end
+end
+-- similar to the above but retrieve from a table, and assume key == label
+local string_from_table = function(caller, tbl, key, default)
+	return string_or_missing(caller, key, tbl[key], default)
+end
+
+
+--[[
+Construct a handler lookup table.
+* getkey is a function used to extract the "primary key" from input data.
+	This key is used to determine which handler to call.
+* label is the "display name" string of this object in errors.
+* opts should be a table consisting of:
+	* [optional] hooklabel is a string used to refer to the handler functions,
+		e.g. "neighbour set hook".
+		May be nil, in which case a sane but not very descriptive string is used.
+	* [optional] reglabel similarly refers to the "outer" register function if applicable,
+		if this object is used as part of some larger interface.
+
+Returns *two functions*, query and register.
+query should be called with an opaque data argument,
+which will be passed to both getkey and the found handler, if any.
+register should be called with a key (as returned by the getkey function)
+and the handler function to associate with that key.
+]]
+local n_chl = "create_handler_lut():"
+local create_handler_lut = function(getkey, label, opts)
+	assert(type(label) == "string", n_chl.."label expected to be a string")
+	local hooklabel = string_from_table(n_chl, opts, "hooklabel", "handler function")
+	local reglabel = string_from_table(n_chl, opts, "reglabel", "register()")
+
+	reglabel = label .. ":" .. reglabel
+	local fncheck = check.mkfnexploder(reglabel)
+	local entries = {}
+	getkey = fncheck(getkey, n_chl)
+
+	local query = function(data)
+		return query_inner(entries, data, getkey)
+	end
+
+	local register = function(key, handler)
+		local f = fncheck(handler, hooklabel)
+		return assert_insert(entries, reglabel, key, handler)
+	end
+
+	return query, register
+end
+
 
 
 local getkey = function(nodedata)
@@ -68,7 +127,10 @@ end
 local label = "successor neighbour table"
 
 local mk_neighbour_lut = function()
-	local entries = {}
+	local query, register = create_handler_lut(
+		getkey,
+		"neighbour_lut",
+		{ hooklabel = "neighbour hook", reglabel="add_custom_hook()" })
 	local i = {}
 
 	--[[
@@ -90,8 +152,7 @@ local mk_neighbour_lut = function()
 	-- hook should return nil to indicate a graceful error instead of throwing.
 	]]
 	i.add_custom_hook = function(self, name, hook)
-		local f = fncheck(hook, "neighbour hook")
-		return assert_insert(entries, label, name, hook)
+		return register(name, hook)
 	end
 
 	--[[
@@ -101,7 +162,7 @@ local mk_neighbour_lut = function()
 	node data is only required to have .name here.
 	]]
 	i.query_neighbour_set = function(self, data)
-		return query_inner(entries, data, getkey)
+		return query(data)
 	end
 
 	return i
