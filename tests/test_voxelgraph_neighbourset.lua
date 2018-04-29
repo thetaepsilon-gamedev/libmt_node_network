@@ -5,6 +5,11 @@ local expect_error = errors.expect_error
 local neighbourset =
 	mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.voxelgraph.neighbourset")
 
+local testing =
+	mtrequire("com.github.thetaepsilon.minetest.libmthelpers.testing")
+
+
+
 local get_test_object = function()
 	return neighbourset.mk_neighbour_lut()
 end
@@ -99,6 +104,6 @@ local run_unit_test_set = function(testdata)
 		end
 	end
 end
-run_unit_test_set({testvecs=testvecs, get_dep = get_test_object})
+testing.test_harness_with_deps({testvecs=testvecs, get_dep = get_test_object})
 
 
