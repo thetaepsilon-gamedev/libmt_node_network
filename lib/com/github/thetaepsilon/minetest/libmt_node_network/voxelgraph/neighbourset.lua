@@ -18,29 +18,34 @@ local i = {}
 
 
 
+local fncheck = check.mkfnexploder("neighbourtable:add_custom_hook()")
+local eduplicate = errors.stdcodes.register.duplicate
+
+local maybe_insert = function(entries, k, v)
+	local new = (entries[k] == nil)
+	if (new) then
+		entries[k] = v
+	end
+	return new
+end
+local assert_insert = function(entries, label, k, v)
+	if not maybe_insert(entries, k, v) then
+		error(eduplicate.." "..label..": duplicate insertion for key "..tostring(k))
+	end
+end
+
+
+
 local getkey = function(nodedata)
 	local n = nodedata.name
 	assert(n ~= nil, "expected node data to have name field")
 	return n
 end
 
-local fncheck = check.mkfnexploder("neighbourtable:add_custom_hook()")
-local eduplicate = errors.stdcodes.register.duplicate
+local label = "successor neighbour table"
+
 local mk_neighbour_lut = function()
 	local entries = {}
-	local maybe_insert = function(k, v)
-		local new = (entries[k] == nil)
-		if (new) then
-			entries[k] = v
-		end
-		return new
-	end
-	local assert_insert = function(k, v)
-		if not maybe_insert(k, v) then
-			error(eduplicate.." successor neighbour table: duplicate insertion for key "..tostring(k))
-		end
-	end
-
 	local i = {}
 
 	--[[
@@ -63,7 +68,7 @@ local mk_neighbour_lut = function()
 	]]
 	i.add_custom_hook = function(self, name, hook)
 		local f = fncheck(hook, "neighbour hook")
-		return assert_insert(name, hook)
+		return assert_insert(entries, label, name, hook)
 	end
 
 	--[[
