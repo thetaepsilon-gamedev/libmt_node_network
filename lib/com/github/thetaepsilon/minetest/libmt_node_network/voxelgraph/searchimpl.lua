@@ -83,7 +83,11 @@ grid = {
 			note the grid object is not required to be the same as the invoked one.
 		-- * effective direction vector going *into* the node
 			(e.g. to allow "portal rotations").
-
+	id = {},
+		-- a unique, empty table (it should literally be {} in source code)
+		-- which serves to uniquely identify a grid.
+		-- this object is used to determine the hash of a grid/position pair
+		-- (and therefore if a given vertex has already been visited).
 }
 ]]
 local check = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.check")
@@ -118,10 +122,10 @@ local mk_voxel_hasher = function(initial_set)
 
 	local hasher = function(vertex)
 		local pos = checkcoord(vertex.pos)
-		local grid = vertex.grid
-		seen_set[grid] = true
-		local p = "P="..pos.x..","..pos.y..","..pos.z
-		return "G="..tostring(grid)..","..p
+		local id = vertex.grid.id
+		seen_set[id] = true
+		local p = "pos="..pos.x..","..pos.y..","..pos.z
+		return "gid="..tostring(id)..","..p
 	end
 
 	return hasher
