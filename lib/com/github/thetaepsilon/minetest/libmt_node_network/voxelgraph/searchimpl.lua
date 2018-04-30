@@ -64,14 +64,17 @@ as changing things mid-search may cause strange results from the search algorith
 --[[
 -- @INTERFACE linkedgrid
 grid = {
-	get = function(self, pos),
+	get = function(self, pos, keys),
 		-- where pos is the regular XYZ vector.
 		-- must return a table with at least "name", "param1", and "param2" values.
 		-- it may assume that pos contains integer coordinates.
-	getmeta = function(self, pos),
-		-- called to retrieve a meta ref to pass to the callback if one needs to be called.
-		-- returns a metadata ref as in worldcache.lua;
-		-- only required to support the get/set_* operations and flush() to commit.
+		-- keys is an opaque object which specifies which aspects of a node require loading.
+		-- the grid and used callbacks must at least agree on the meaning of this object.
+		-- this is to support e.g. providing metadata access, or *other data*
+		-- which are currently unknown (e.g. grids that possess a means to get temperature).
+		-- please note: if providing a metadata ref,
+		-- *accessors are allowed to assume it can't change*.
+		-- in other words, make it read only!
 	neighbour = function(self, pos, direction),
 		-- direction is an offset vector from pos.
 		-- must return the following:
@@ -84,7 +87,7 @@ grid = {
 }
 ]]
 local check = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.check")
-local methods = { "get", "getmeta", "neighbour" }
+local methods = { "get", "neighbour" }
 local checkgrid = check.mk_interface_check(methods, "checkgrid()")
 
 
