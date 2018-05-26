@@ -11,6 +11,50 @@ The below object is used to hold such registrations for nodes.
 It can have handler functions installed which will be invoked
 when it is queried for the neighbours of a given node,
 based on the node's name.
+
+The handler functions registered must behave as follows...
+-- function signature (**):
+local candidates = callback(node)
+-- node is the usual data from minetest.get_node() but may contain extra data.
+-- hook should return nil to indicate a graceful error instead of throwing;
+--	deliberately throwing errors in general is discouraged.
+
+Return value:
+A table of keys mapping to minetest XYZ vectors representing offsets of neighbours.
+The keys can be anything (including just numerical if they don't mean anything);
+the neighbour filter stage will see whatever values the keys are.
+So the keys could be e.g. tables which contain property data,
+such as e.g. "this neighbour is a side with less conductivity than normal".
+
+-- This could be done like the following.
+-- note "resistance" is an arbitary property;
+-- as long as the neighbour filter understands it,
+-- any fields in the key table are fine.
+local neighbours = {
+	[{ resistance = 100 }] = { x=0, y=1, z=0 },
+	[{ resistance = 200 }] = { x=0, y=-1, z=0 },
+	-- ...
+}
+-- or like this:
+-- (note that each key table must be unique!)
+local p1 = { resistance = 100 }
+local neighbours = {
+	[p1] = { x=0, y=1, z=0 },
+	-- ...
+}
+-- however, if no extra data needs to be specified,
+-- normal list-like tables will do fine.
+local neighbours = {
+	{ x=0, y=1, z=0 },
+	{ x=0, y=-1, z=0 },
+	-- ...
+}
+
+** Note that the callback is not passed a position;
+checking the indicated neighbours should be done in the neighbour filter step.
+If the callback requires metadata, then the source grid must provide a means to access it,
+e.g. provide node:getmeta() in the node data it returns.
+See searchimpl.lua for how this is done.
 ]]
 local i = {}
 
@@ -31,34 +75,15 @@ local mk_neighbour_lut = function()
 		{ hooklabel = "neighbour hook", reglabel="add_custom_hook()" })
 	local i = {}
 
-	--[[
-	register a custom function to determine candidate neighbours.
-	NB: this function is not for checking nearby nodes and doesn't get a position,
-	but is provided node data as returned by the grid;
-	this node data must at least contain a .name member,
-	though normally this object will have called the most appropriate handler anyway.
-	It should simply return a table mapping keys to XYZ MT vectors.
-	The keys can be anything; they are preserved elsewhere,
-	and can be used to tag connections to other nodes with extra data later.
-
-	NB: it is expected that the caller provide any extra data inside nodedata,
-	*including* metadata refs.
-	So it could potentially look like e.g. { name="...", param2=..., meta=... }
-
-	-- function signature:
-	local candidates = callback(nodedata)
-	-- hook should return nil to indicate a graceful error instead of throwing.
-	]]
+	-- register a hook for a given node name.
+	-- when a query is run, node.name is inspected,
+	-- and the hook whose name matches (if any) is run.
 	i.add_custom_hook = function(self, name, hook)
 		return register(name, hook)
 	end
 
-	--[[
-	retrieve neighbour set based on node data.
-	returns a list of candidate vectors, or nil and an error code;
-	error()s by hooks are currently propogated.
-	node data is only required to have .name here.
-	]]
+	-- call query with the data from a source node to invoke an appropriate handler.
+	-- nil and an error code are returned if something failed or no handler exists.
 	i.query_neighbour_set = function(self, data)
 		return query(data)
 	end
