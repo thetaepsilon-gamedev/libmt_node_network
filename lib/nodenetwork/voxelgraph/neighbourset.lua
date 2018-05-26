@@ -66,8 +66,6 @@ local getkey = function(nodedata)
 	return n
 end
 
-local label = "successor neighbour table"
-
 local mk_neighbour_lut = function()
 	local query, register = handler_lut.mk_handler_lut(
 		getkey,
