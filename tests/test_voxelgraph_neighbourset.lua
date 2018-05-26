@@ -11,13 +11,13 @@ local testing =
 
 
 local get_test_object = function()
-	local lut = neighbourset.mk_neighbour_lut()
+	local query, register = neighbourset.mk_neighbour_lut()
 	return {
 		add_custom_hook = function(self, ...)
-			return lut:add_custom_hook(...)
+			return register(...)
 		end,
 		query_neighbour_set = function(self, ...)
-			return lut:query_neighbour_set(...)
+			return query(...)
 		end,
 	}
 end

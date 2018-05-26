@@ -58,35 +58,31 @@ See searchimpl.lua for how this is done.
 ]]
 local i = {}
 
-
-
+--[[
+Constructor mk_neighbour_lut() returns two functions, query and register.
+query = function(node)
+	-- call query with the data from a source node
+	-- (a la minetest.get_node(), should have have at least { name = "..." }),
+	-- to invoke an appropriate handler;
+	-- the function registered with the matching name
+	-- (if any, see below) will be called,
+	-- and node will be passed as the handler's single argument.
+	-- nil and an error code are returned if something failed or no handler exists.
+register = function(name, hookf)
+	-- register a hook for a given node name.
+	-- when a query is run, node.name is inspected,
+	-- and the hook whose name matches (if any) is run.
+]]
 local getkey = function(nodedata)
 	local n = nodedata.name
 	assert(n ~= nil, "expected node data to have name field")
 	return n
 end
-
 local mk_neighbour_lut = function()
-	local query, register = handler_lut.mk_handler_lut(
+	return handler_lut.mk_handler_lut(
 		getkey,
 		"neighbour_lut",
 		{ hooklabel = "neighbour hook", reglabel="add_custom_hook()" })
-	local i = {}
-
-	-- register a hook for a given node name.
-	-- when a query is run, node.name is inspected,
-	-- and the hook whose name matches (if any) is run.
-	i.add_custom_hook = function(self, name, hook)
-		return register(name, hook)
-	end
-
-	-- call query with the data from a source node to invoke an appropriate handler.
-	-- nil and an error code are returned if something failed or no handler exists.
-	i.query_neighbour_set = function(self, data)
-		return query(data)
-	end
-
-	return i
 end
 i.mk_neighbour_lut = mk_neighbour_lut
 
