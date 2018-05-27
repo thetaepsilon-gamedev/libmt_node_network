@@ -13,17 +13,17 @@ local i = {}
 local rotate_vector_set = function(baseset, param2)
 	local result = {}
 	local rotate = lookup(param2)
-	for i, v in ipairs(baseset) do
-		result[i] = rotate(v)
+	for k, v in pairs(baseset) do
+		result[k] = rotate(v)
 	end
 	return result
 end
 i.rotate_vector_set = rotate_vector_set
 
 local create_neighbour_fn = function(basefunc)
-	return function(nodedata, nodemeta)
-		local param2 = nodedata.param2
-		local baseset = basefunc(nodedata, nodemeta)
+	return function(node)
+		local param2 = node.param2
+		local baseset = basefunc(node)
 		return rotate_vector_set(baseset, param2)
 	end
 end
