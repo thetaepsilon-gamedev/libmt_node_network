@@ -1,62 +1,89 @@
 --[[
-In order to track connected groups of nodes in the world,
-here we map the abstract graph concept to individual voxels and their neighbours.
-We need some kind of filtering as every voxel has six neighbours naturally,
-but we may not be interested in all of them if they're e.g. not a cable or other connecting node.
-Additionally, they may be the right node but may have direction constraints;
-for example, a node that can only connect with other nodes on the top or bottom,
-even if the other touching nodes could connect on their sides.
-Furthermore, that set of allowed connections may vary dependent on node data.
+The breadth-first mapping algorithm (see bfmap.lua)
+operates on an abstract graph (think dots joined by lines).
+We can map this concept to minetest's world
+by treating nodes as the "dots" (vertexes)
+and connections between suitable adjacent nodes as the lines (edges).
+If we provide the algorithm with a way of traversing from one node to the next
+(the successor function), the algorithm will flood search all nodes connected to a starting point.
 
-Therefore, in order to determine the valid neighbours of a given node, we need to determine:
-* The nodes which should be looked at around the origin node (the neighbour candidate set);
-* Whether those nodes are valid neighbours based on their node data (filtering step); and
-* whether those nodes are allowed to connect *back* in the reverse direction (the direction check)
+The code below deals with setting this up for a given type of "network" of nodes.
+Node data is obtained by a "grid" object*,
+and functions should be passed which answer certain queries about encountered nodes.
+These functions are provided by the caller to
+describe which nodes should be considered part of the network;
+nodes which pass all the stages described below are considered neighbours,
+whereas those which don't are ignored.
 
-The structures below allow determining this.
-The successor function's vertex structure looks like the following:
-vertex = {
-	grid = gridimpl,	-- *
-	pos = { x, y, z },
-}
-In order to prevent address re-use problems if a grid object happens to vanish mid-search,
-a given successor instance maintains references to all seen grids while it is still alive
-(hence why it has to be created each time).
+When the successor is called with a starting position,
+the query functions are invoked in this order:
++ Neighbour set stage:
+	"Which nodes around this one might be a valid neighbour?"
+	This is passed just the node's data** (as returned by the grid object)
+	as it's single argument,
+	and must return a table where the values are MT XYZ offset vectors
+	(e.g. {x=0,y=1,z=0} to specify the node immediately above).
+	Return {} for no neighbours; nil is treated as an internal error.
+	The keys must be unique but may themselves be tables which may carry extra data,
+	which will be passed to...
++ Inbound filter stage:
+	"Can this node be connected to?"
+	This function is passed a table like the following:
+	{
+		node = { /* nodedata */ },
+			-- node data for candidate, same as for source
+		extra = ...,
+			-- key data of this neighbour as described above
+		direction = {...},
+			-- *reverse* connection direction, going back out to the origin
+			-- (e.g. for the above example the vector would point *down*)
+	}
+	The keys used in the neighbour set can therefore be used to communicate with the inbound filter.
+	It must return a boolean predicate value, indicating if this node is a valid neighbour.
 
-The successor queries the vertex's grid for the node at the vertex position, 
-then looks up the node name in it's internal data structures.
-The candidate neighbours are retrieved either from a presets table
-or by dynamically calling a function registered in a callbacks table
-(which can e.g. examine metadata),
-resulting in a list of offset vectors.
+If an offset is a) present in the neighbour set and b) given the ok by the inbound filter,
+then it is returned as a successor of this node (and added to the ongoing search).
+In this manner, you can teach the search algorithm about exactly which nodes to "connect" to.
 
-Then, the successor code asks the grid object for the resulting grid and position on that grid*,
-then calls that grid with that position to retrieve node data.
-At this point, the source node has the opportunity to filter each of these candidates,
-based upon the node data for the candidate;
-this allows e.g. filtering the initial vectors based on the node's group.
+For instance (assuming the grid populates the "name" field):
+neighbourset = function(node)
+	if (node.name == "default:stone") then
+		-- horizontal plus "+" pattern: +-X, +-Z
+		return { {x=1,y=0,z=0}, {x=-1,y=0,z=0}, {x=0,y=0,z=1}, {x=0,y=0,z=-1}}
+	end
+	-- explicitly return empty set, nil is treated as an internal error.
+	return {}
+end
+inbound_filter = function(node)
+	if node.name == "default:stone" or "default:cobble" then return true end
+	return false
+end
+This defines a network which propogates horizontally
+(but not across diagonals) along adjacent stone blocks,
+and will also include cobblestone but they are considered a "dead end"
+(that is, they will not provide any neighbours to continue the search from them).
+More advanced networks could do things like inspect node metadata
+(however the grid object would have to provide this data).
 
-The directionality data for each candidate that passes the above is again looked up by preset table or callback.
-This is in reverse, from the target back to the source
-and just asks "is this node in this direction allowed to connect?", with a boolean outcome.
-If this check passes, then that target position and grid are added to the successor set.
-Repeat for all initial neighbour candidates, and that list is returned
-(in appropriate hashset form for the search algorithm).
 
 
-
-* The intent here is to be as general as possible,
+* See @INTERFACE linkedgrid below.
+The intent here is to be as general as possible,
 and not lock out tricks that break under the assumption of a singleton euclidian grid.
-Passing the grid a direction instead of calculating offsets directly allows "portals",
-where a graph of nodes can span otherwise logically disconnected areas.
-Likewise, differing target grids allows the code to cross boundaries to something other than the MT world;
-for example, the sought after but ever postponed Voxel Area Entities,
-which would be freely rotateable and would not relate directly to "global" co-ordinates.
+Singletons are bad enough practice as-is,
+and if e.g. VAEs or other "dimensions" to the MT world get added at some point in the future,
+most code using the singletone get/set_node api will fail to work with this.
+Additionally, the chosen grid object(s) can correlate extra data with world positions if desired,
+relieving the query functions of this burden.
 
-This means that in general any callback functions MUST NOT use any minetest.* functions with world side effects,
+**
+This means that in general any callback functions
+MUST NOT use any minetest.* functions with world side effects,
 such as trying to spawn an entity assuming the coordinates map to the global grid.
 Generally speaking, where possible the callbacks must avoid making *any* visible side effects,
 as changing things mid-search may cause strange results from the search algorithm.
+(In other words: bfmap may assume the graph isn't modified in-flight,
+so doing so may cause undefined behaviour - anything could happen!)
 ]]
 
 
@@ -64,15 +91,12 @@ as changing things mid-search may cause strange results from the search algorith
 --[[
 -- @INTERFACE linkedgrid
 grid = {
-	get = function(self, pos, keys),
+	get = function(self, pos),
 		-- where pos is the regular XYZ vector.
-		-- must return a table with at least "name", "param1", and "param2" values.
+		-- returns a table, but no constraints are placed on it's contents;
+		-- grids and query functions used together must pre-arrange needed data.
 		-- it may assume that pos contains integer coordinates.
-		-- keys is an opaque object which specifies which aspects of a node require loading.
-		-- the grid and used callbacks must at least agree on the meaning of this object.
-		-- this is to support e.g. providing metadata access, or *other data*
-		-- which are currently unknown (e.g. grids that possess a means to get temperature).
-		-- please note: if providing a metadata ref,
+		-- please note: if providing a minetest metadata ref,
 		-- *accessors are allowed to assume it can't change*.
 		-- in other words, make it read only!
 	neighbour = function(self, pos, direction),
@@ -115,6 +139,18 @@ end
 
 local i = {}
 
+--[[
+Two positions in separate grids are considered distinct entities.
+In order to check whether a given grid/position pair is equal to another,
+we create a hash string that includes them both,
+utilising the fact that tostring(table) will utilise it's address.
+
+However, it is possible (though unlikely) that an address could potentially wind up re-used,
+if another grid is created in the heap in the same space as another one which got garbage collected.
+To avoid this problem, a given instance of the successor retains references to seen grids.
+This way, the grids remain live as long as the successor does,
+ensuring that addresses from tostring of a table will not collide.
+]]
 local tableutils = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.tableutils")
 local shallowcopy = tableutils.shallowcopy
 local mk_voxel_hasher = function(initial_set)
@@ -123,6 +159,7 @@ local mk_voxel_hasher = function(initial_set)
 	local hasher = function(vertex)
 		local pos = checkcoord(vertex.pos)
 		local id = vertex.grid.id
+		assert(id ~= nil)
 		seen_set[id] = true
 		local p = "pos="..pos.x..","..pos.y..","..pos.z
 		return "gid="..tostring(id)..","..p
