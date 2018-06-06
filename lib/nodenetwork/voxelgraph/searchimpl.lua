@@ -35,8 +35,8 @@ the query functions are invoked in this order:
 		extra = ...,
 			-- key data of this neighbour as described above
 		direction = {...},
-			-- *reverse* connection direction, going back out to the origin
-			-- (e.g. for the above example the vector would point *down*)
+			-- inbound connection direction, going *into* the node
+			-- (e.g. above upwards vector going inwards is the bottom side)
 	}
 	The keys used in the neighbour set can therefore be used to communicate with the inbound filter.
 	It must return a boolean predicate value, indicating if this node is a valid neighbour.
@@ -54,8 +54,8 @@ neighbourset = function(node)
 	-- explicitly return empty set, nil is treated as an internal error.
 	return {}
 end
-inbound_filter = function(node)
-	if node.name == "default:stone" or "default:cobble" then return true end
+inbound_filter = function(data)
+	if data.node.name == "default:stone" or "default:cobble" then return true end
 	return false
 end
 This defines a network which propogates horizontally
@@ -99,14 +99,17 @@ grid = {
 		-- please note: if providing a minetest metadata ref,
 		-- *accessors are allowed to assume it can't change*.
 		-- in other words, make it read only!
-	neighbour = function(self, pos, direction),
-		-- direction is an offset vector from pos.
+		-- may return nil if position is beyond boundaries of the grid.
+	neighbour = function(self, pos, offset),
+		-- offset is an MT XYZ offset vector from pos.
 		-- must return the following:
-		-- * vertex table in the above format,
-			containing position and target grid.
-			note the grid object is not required to be the same as the invoked one.
-		-- * effective direction vector going *into* the node
-			(e.g. to allow "portal rotations").
+		-- * table of { grid=..., pos=..., direction=... }
+		--	The grid may be a different one from the original,
+		--	to allow jumps across connected grids.
+		--	Likewise, pos does not have to be euclidian pos + offset.
+		--	Direction may also change,
+		--	it must be the new direction going into the target node.
+		-- Returning nil is again allowed if the offset falls off the edge of the world.
 	id = {},
 		-- a unique, empty table (it should literally be {} in source code)
 		-- which serves to uniquely identify a grid.
@@ -137,8 +140,6 @@ end
 
 
 
-local i = {}
-
 --[[
 Two positions in separate grids are considered distinct entities.
 In order to check whether a given grid/position pair is equal to another,
@@ -154,7 +155,12 @@ ensuring that addresses from tostring of a table will not collide.
 local tableutils = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.tableutils")
 local shallowcopy = tableutils.shallowcopy
 local mk_voxel_hasher = function(initial_set)
-	local seen_set = shallowcopy(initial_set)
+	local seen_set
+	if initial_set ~= nil then
+		seen_set = shallowcopy(initial_set)
+	else
+		seen_set = {}
+	end
 
 	local hasher = function(vertex)
 		local pos = checkcoord(vertex.pos)
@@ -167,11 +173,132 @@ local mk_voxel_hasher = function(initial_set)
 
 	return hasher
 end
-i.mk_voxel_hasher = mk_voxel_hasher
 
-local get_at_position = function(vertex)
-	return vertex.grid:get(vertex.pos)
+
+
+-- phase 2 helper:
+-- handle getting grid data and invoking the inbound filter.
+-- returns successor vertex if everything went ok and the filter said yes,
+-- otherwise returns nil.
+local aget = function(v) assert(v ~= nil) return v end
+local filter_candidate_offset = function(bpos, currentgrid, extradata, offset, inbound_filter)
+	-- asserts due to refactor...
+	aget(bpos)
+	aget(currentgrid)
+	aget(extradata)
+	aget(offset)
+	aget(inbound_filter)
+
+	local remoteloc = currentgrid:neighbour(bpos, offset)
+	if remoteloc ~= nil then
+		-- we have: newgrid, newpos, newdirection
+		-- we need: newnode, extra, newdirection
+		local newpos = aget(remoteloc.pos)
+		local newgrid = aget(remoteloc.grid)
+		local newdir = aget(remoteloc.direction)
+		local newnode = newgrid:get(newpos)
+		if newnode ~= nil then
+			-- XXX: defensive copy of newnode?
+			local accept = inbound_filter({
+				node=newnode,
+				extra=extradata,
+				direction=newdir,
+			})
+			if accept then
+				-- if it passed all that: add as successor
+				local sv = {
+					grid=newgrid,
+					pos=newpos,
+					data=newnode
+				}
+				return sv
+			else
+				-- rejected by filter, ignore it
+				return nil
+			end
+		else
+			-- node was nil for this offset: fell off the grid
+			return nil
+		end
+	else
+		-- remoteloc was nil for offset: fell off the grid
+		return nil
+	end
 end
+
+
+
+
+
+--[[
+Internal graph vertex structure for voxel graphs:
+{
+	grid = { ... },	-- source grid
+	pos = { ... },	-- position on that grid
+	data = { ... },	-- cached node data
+}
+]]
+-- note that due to the hasher needing to retain state as described earlier,
+-- an instance of it must be passed in.
+local successor_inner = function(vertex, neighbourset, inbound_filter, hasher)
+	local currentgrid = aget(vertex.grid)
+
+	-- phase 1: get current node and get candidates around it
+	-- node is cached in vertex data so just use that.
+	local node = vertex.data
+	assert(node ~= nil)
+	local bpos = vertex.pos
+	assert(bpos ~= nil)
+
+	local candidates = neighbourset(node)
+	-- XXX: customise failure mode?
+	if candidates == nil then return {} end
+	assert(type(candidates) == "table")
+
+	-- phase 2:
+	-- load candidate positions around this node,
+	-- query inbound filter stage
+	local successors = {}
+	for extradata, offset in pairs(candidates) do
+		local vertex =
+			filter_candidate_offset(
+				bpos,
+				currentgrid,
+				extradata,
+				offset,
+				inbound_filter)
+		if vertex ~= nil then
+			local hash = hasher(vertex)
+			assert(hash ~= nil)
+			assert(
+				successors[hash] == nil,
+				"hash collision!? bug or duplicate candidate!")
+			successors[hash] = vertex
+		end
+	end
+
+	return successors
+end
+
+
+
+-- public interface follows
+local i = {}
+
+local cf = check.mkfnexploder("create_successor()")
+local create_successor = function(query_functions)
+	-- why isn't there some kind of macro facility for this...
+	local neighbourset =
+		cf(query_functions.neighbourset, "query_functions.neighbourset")
+	local inbound_filter =
+		cf(query_functions.inbound_filter, "query_functions.inbound_filter")
+	local hasher = mk_voxel_hasher(nil)
+
+	return function(vertex, hash)
+		return successor_inner(vertex, neighbourset, inbound_filter, hasher)
+	end
+end
+i.create_successor = create_successor
 
 
 
