@@ -89,9 +89,13 @@ so doing so may cause undefined behaviour - anything could happen!)
 
 
 --[[
+-- READ THIS FIRST:
+-- these functions are *not* members, but closures.
+--	they would be called by grid.get(), not grid:get().
+--	in other words, they are expected to maintain their "self" values using upvalues.
 -- @INTERFACE linkedgrid
 grid = {
-	get = function(self, pos),
+	get = function(pos),
 		-- where pos is the regular XYZ vector.
 		-- returns a table, but no constraints are placed on it's contents;
 		-- grids and query functions used together must pre-arrange needed data.
@@ -100,7 +104,7 @@ grid = {
 		-- *accessors are allowed to assume it can't change*.
 		-- in other words, make it read only!
 		-- may return nil if position is beyond boundaries of the grid.
-	neighbour = function(self, pos, offset),
+	neighbour = function(pos, offset),
 		-- offset is an MT XYZ offset vector from pos.
 		-- must return the following:
 		-- * table of { grid=..., pos=..., direction=... }
@@ -189,14 +193,14 @@ local filter_candidate_offset = function(bpos, currentgrid, extradata, offset, i
 	aget(offset)
 	aget(inbound_filter)
 
-	local remoteloc = currentgrid:neighbour(bpos, offset)
+	local remoteloc = currentgrid.neighbour(bpos, offset)
 	if remoteloc ~= nil then
 		-- we have: newgrid, newpos, newdirection
 		-- we need: newnode, extra, newdirection
 		local newpos = aget(remoteloc.pos)
 		local newgrid = aget(remoteloc.grid)
 		local newdir = aget(remoteloc.direction)
-		local newnode = newgrid:get(newpos)
+		local newnode = newgrid.get(newpos)
 		if newnode ~= nil then
 			-- XXX: defensive copy of newnode?
 			local accept = inbound_filter({
