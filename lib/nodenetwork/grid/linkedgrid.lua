@@ -12,6 +12,20 @@ Additionally, the chosen grid object(s) can correlate extra data with world posi
 (e.g. temperature, humitidy etc.), relieving the query functions of this burden.
 ]]
 
+
+
+local i = {}
+i.constants = {}
+-- various constants useful for grid implementations.
+local sentinel =
+	mtrequire("com.github.thetaepsilon.minetest.libmthelpers.datastructs.sentinel")
+-- sentinel value indicating out-of-bounds for a grid.
+local out_of_bounds = sentinel.mk("libmt_node_network.grid.out_of_bounds")
+i.constants.out_of_bounds = function() return out_of_bounds end
+
+
+
+
 --[[
 -- READ THIS FIRST:
 -- these functions are *not* members, but closures.
@@ -27,7 +41,8 @@ grid = {
 		-- please note: if providing a minetest metadata ref,
 		-- *accessors are allowed to assume it can't change*.
 		-- in other words, make it read only!
-		-- may return nil if position is beyond boundaries of the grid.
+		-- may return SENTINEL linkedgrid.constants.out_of_bounds,
+		--	if the given position is beyond the world/grid boundary.
 	neighbour = function(pos, offset),
 		-- offset is an MT XYZ offset vector from pos.
 		-- must return the following:
@@ -37,12 +52,16 @@ grid = {
 		--	Likewise, pos does not have to be euclidian pos + offset.
 		--	Direction may also change,
 		--	it must be the new direction going into the target node.
-		-- Returning nil is again allowed if the offset falls off the edge of the world.
+		-- Returning SENTINEL linkedgrid.constants.out_of_bounds
+		-- is again allowed if the offset falls off the edge of the world.
 	id = {},
-		-- a unique, empty table (it should literally be {} in source code)
+		-- a unique, empty table
+		-- (either a literal {} in source code or a sentinel)
 		-- which serves to uniquely identify a grid.
 		-- this object is used to determine the hash of a grid/position pair
 		-- (and therefore if a given vertex has already been visited).
 }
 ]]
+
+return i
 
