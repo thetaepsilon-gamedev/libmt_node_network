@@ -44,26 +44,7 @@ the query functions are invoked in this order:
 If an offset is a) present in the neighbour set and b) given the ok by the inbound filter,
 then it is returned as a successor of this node (and added to the ongoing search).
 In this manner, you can teach the search algorithm about exactly which nodes to "connect" to.
-
-For instance (assuming the grid populates the "name" field):
-neighbourset = function(node)
-	if (node.name == "default:stone") then
-		-- horizontal plus "+" pattern: +-X, +-Z
-		return { {x=1,y=0,z=0}, {x=-1,y=0,z=0}, {x=0,y=0,z=1}, {x=0,y=0,z=-1}}
-	end
-	-- explicitly return empty set, nil is treated as an internal error.
-	return {}
-end
-inbound_filter = function(data)
-	if data.node.name == "default:stone" or "default:cobble" then return true end
-	return false
-end
-This defines a network which propogates horizontally
-(but not across diagonals) along adjacent stone blocks,
-and will also include cobblestone but they are considered a "dead end"
-(that is, they will not provide any neighbours to continue the search from them).
-More advanced networks could do things like inspect node metadata
-(however the grid object would have to provide this data).
+See the associated test script (tests/test_voxelgraph_searchimpl.lua) to see an example.
 
 
 
@@ -81,6 +62,10 @@ so doing so may cause undefined behaviour - anything could happen!)
 
 
 
+-- get the special out-of-bounds sentinel value.
+local linkedgrid =
+	mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.grid.linkedgrid")
+local outofbounds = linkedgrid.constants.out_of_bounds()
 
 local check = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.check")
 local methods = { "get", "neighbour" }
@@ -155,14 +140,18 @@ local filter_candidate_offset = function(bpos, currentgrid, extradata, offset, i
 	aget(inbound_filter)
 
 	local remoteloc = currentgrid.neighbour(bpos, offset)
-	if remoteloc ~= nil then
+	-- only process the location if it's not out of bounds.
+	if remoteloc ~= oob then
+		assert(remoteloc ~= nil)
+
 		-- we have: newgrid, newpos, newdirection
 		-- we need: newnode, extra, newdirection
 		local newpos = aget(remoteloc.pos)
 		local newgrid = aget(remoteloc.grid)
 		local newdir = aget(remoteloc.direction)
 		local newnode = newgrid.get(newpos)
-		if newnode ~= nil then
+		if newnode ~= oob then
+			assert(newnode ~= nil)
 			-- XXX: defensive copy of newnode?
 			local accept = inbound_filter({
 				node=newnode,
@@ -182,11 +171,11 @@ local filter_candidate_offset = function(bpos, currentgrid, extradata, offset, i
 				return nil
 			end
 		else
-			-- node was nil for this offset: fell off the grid
+			-- node was oob for this offset: fell off the grid
 			return nil
 		end
 	else
-		-- remoteloc was nil for offset: fell off the grid
+		-- remoteloc was oob for offset: fell off the grid
 		return nil
 	end
 end
