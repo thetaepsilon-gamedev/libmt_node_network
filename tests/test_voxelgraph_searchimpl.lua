@@ -1,3 +1,10 @@
+local eq = mtrequire("ds2.minetest.vectorextras.equality")
+-- enable these for print debug statements when they're uncommented...
+--local coords = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.coords")
+--local fmt = coords.format
+
+
+
 --[[
 -- An example of the query functions that could be used in a voxelgraph successor
 -- (assuming the grid object populates the name field):
@@ -5,8 +12,8 @@
 local neighbourset = function(node)
 	--print(node.name)
 	if (node.name == "default:stone") then
-		-- horizontal plus "+" pattern: +-X, +-Z
-		return { {x=1,y=0,z=0}, {x=-1,y=0,z=0}, {x=0,y=0,z=1}, {x=0,y=0,z=-1}}
+		-- plus "+" pattern: +-X, +-Y
+		return { {x=1,y=0,z=0}, {x=-1,y=0,z=0}, {x=0,y=1,z=0}, {x=0,y=-1,z=0}}
 	end
 	-- explicitly return empty set, nil is treated as an internal error.
 	return {}
@@ -14,7 +21,7 @@ end
 local inbound_filter = function(data)
 	local n = data.node.name
 	--print(n)
-	local accept = (n == "defaut:stone") or (n == "default:cobble")
+	local accept = (n == "default:stone") or (n == "default:cobble")
 	--print(accept)
 	return accept
 end
@@ -142,7 +149,41 @@ local psuccessors = function(pos)
 	return successor({grid=grid, pos=pos}, nil)
 end
 -- first up is the lone stone and cobble blocks ("S" and "C").
--- both of these ought to return the empty set.
+-- both of these ought to return the empty set,
+-- as neither of them have any stone-y nodes around them.
 --print(grid.get({x=0,y=2,z=0}).name)
 empty(psuccessors({x=1,y=2,z=0}))
+empty(psuccessors({x=3,y=2,z=0}))
+
+-- next, the S and C plus shape formations.
+-- in the latter case, we expect the cobble to end up as a dead end;
+-- i.e. it will not propogate to the surrounding stone.
+local expect_vector_set = function(expected, actual)
+	for i, ex in ipairs(expected) do
+		-- test each successor in the actual set in turn.
+		-- if a match isn't found, raise an error.
+		-- otherwise clear it from the actual set (note destructive!).
+		local k
+		local empty = true
+		for hash, vertex in pairs(actual) do
+			empty = false
+			assert(vertex.grid == grid)
+			local pos = vertex.pos
+			--print(fmt(pos))
+			if eq(pos, ex) then
+				k = hash
+			end
+		end
+		assert(not empty, "actual set was empty!?")
+		if k == nil then
+			local f = fmt(ex)
+			error("expected element "..i.." not present in set: "..f)
+		end
+		actual[k] = nil
+	end
+end
+
+local plus = {{x=5,y=2,z=0}, {x=7,y=2,z=0}, {x=6,y=1,z=0}, {x=6,y=3,z=0}}
+expect_vector_set(plus, successor({grid=grid, pos={x=6,y=2,z=0}}, nil))
+empty(psuccessors({x=10,y=2,z=0}))
 
