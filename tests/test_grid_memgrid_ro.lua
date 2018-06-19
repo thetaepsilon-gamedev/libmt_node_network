@@ -3,7 +3,9 @@ local memgrid_ro =
 local linkedgrid = 
 	mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.grid.linkedgrid")
 local oob = linkedgrid.constants.out_of_bounds()
-
+local eq = mtrequire("ds2.minetest.vectorextras.equality")
+local m_add = mtrequire("ds2.minetest.vectorextras.add")
+local vadd = m_add.wrapped
 
 -- set up the grid.
 -- pretend block data is just strings for display/debug purposes
@@ -62,4 +64,37 @@ outofbounds({x=0,y=0,z=1})
 outofbounds({x=0,y=0,z=2})
 outofbounds({x=0,y=0,z=-1})
 outofbounds({x=0,y=0,z=-2})
+
+
+
+-- now test the functionality of grid.neighbour().
+-- as this is just a regular euclidian grid,
+-- we expect that x+1 of a position will be that of adding +1 to the position's X etc.;
+-- and that neighbour movements crossing the boundary will result in oob also.
+local origin = {x=0,y=0,z=0}
+local euclid_offset = function(base, offset)
+	local expected = vadd(base, offset)
+	local r = grid.neighbour(base, offset)
+	assert(type(r) == "table")
+	assert(r ~= oob)
+	assert(r.grid == grid)
+	assert(eq(r.pos, expected))
+	assert(eq(r.direction, offset))
+end
+
+euclid_offset(origin, {x=1,y=0,z=0})
+euclid_offset(origin, {x=0,y=1,z=0})
+euclid_offset({x=4,y=4,z=0}, {x=-1,y=0,z=0})
+euclid_offset({x=4,y=4,z=0}, {x=0,y=-1,z=0})
+euclid_offset({x=2,y=2,z=0}, {x=-1,y=0,z=0})
+
+-- check oob crossings
+local offset_oob = function(base, offset)
+	local r = grid.neighbour(base, offset)
+	assert(r == oob)
+end
+offset_oob(origin, {x=-1,y=0,z=0})
+offset_oob(origin, {x=0,y=-1,z=0})
+offset_oob(origin, {x=0,y=0,z=-1})
+offset_oob({x=2,y=3,z=0}, {x=0,y=0,z=2})
 

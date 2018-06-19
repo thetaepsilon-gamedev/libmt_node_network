@@ -91,6 +91,49 @@ end
 
 
 
+-- FIXME: minor DRY violation, copy+pasted, but too many chars to import
+local checkint = function(n) return (n % 1.0) == 0 end
+
+-- look up neighbour position:
+-- as this is a simple 2D grid, all we have to do is do a vector add.
+-- this grid doesn't support linking to other grids, so it must return self.
+-- the inbound direction is unmodified and returned directly.
+local mk_grid_neighbour_pos = function(selfgrid, xb, yb, zb, xw, yw, zw)
+	return function(pos, off)
+		local xi, yi, zi = pos.x, pos.y, pos.z
+		assert(checkint(xi))
+		assert(checkint(yi))
+		assert(checkint(zi))
+
+		local xo, yo, zo = off.x, off.y, off.z
+		assert(checkint(xo))
+		assert(checkint(yo))
+		assert(checkint(zo))
+
+		local xnew = xi + xo
+		local ynew = yi + yo
+		local znew = zi + zo
+
+		-- check that resulting coordinates are inside the region,
+		-- however we don't need to load anything with the resulting relpos.
+		local xr, yr, zr =
+			coordinates_inside_region(xb, yb, zb, xw, yw, zw, xnew, ynew, znew)
+		if (xr == nil) then return oob end
+
+		return {
+			grid = selfgrid,
+			pos = {
+				x = xnew,
+				y = ynew,
+				z = znew,
+			},
+			direction = off,
+		}
+	end
+end
+
+
+
 
 
 --[[
@@ -108,7 +151,6 @@ Constructor. Options table:
 	the last node inside the region on that axis is (Xbase + Xsize - 1).
 	XYZ values must be integers > 0.
 ]]
-local checkint = function(n) return (n % 1.0) == 0 end
 local construct = function(opts)
 	assert(type(opts) == "table")
 
@@ -143,11 +185,13 @@ local construct = function(opts)
 		--print(xi, yi, zi)
 		return get_node_at_position(xb, yb, zb, xw, yw, zw, xi, yi, zi, store, trans)
 	end
-	selfgrid = function() return {
+	selfgrid = {
 		get = get,
 		id = id,
-	} end
-	return selfgrid()
+	}
+	selfgrid.neighbour =
+		mk_grid_neighbour_pos(selfgrid, xb, yb, zb, xw, yw, zw)
+	return selfgrid
 end
 return construct
 
