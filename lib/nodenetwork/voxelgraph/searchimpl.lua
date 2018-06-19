@@ -65,7 +65,7 @@ so doing so may cause undefined behaviour - anything could happen!)
 -- get the special out-of-bounds sentinel value.
 local linkedgrid =
 	mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.grid.linkedgrid")
-local outofbounds = linkedgrid.constants.out_of_bounds()
+local oob = linkedgrid.constants.out_of_bounds()
 
 local check = mtrequire("com.github.thetaepsilon.minetest.libmthelpers.check")
 local methods = { "get", "neighbour" }
