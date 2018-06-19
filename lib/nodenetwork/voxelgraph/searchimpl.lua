@@ -189,7 +189,6 @@ Internal graph vertex structure for voxel graphs:
 {
 	grid = { ... },	-- source grid
 	pos = { ... },	-- position on that grid
-	data = { ... },	-- cached node data
 }
 ]]
 -- note that due to the hasher needing to retain state as described earlier,
@@ -199,10 +198,13 @@ local successor_inner = function(vertex, neighbourset, inbound_filter, hasher)
 
 	-- phase 1: get current node and get candidates around it
 	-- node is cached in vertex data so just use that.
-	local node = vertex.data
-	assert(node ~= nil)
 	local bpos = vertex.pos
 	assert(bpos ~= nil)
+	local node = currentgrid.get(bpos)
+	assert(node ~= nil)
+	-- did we get out of bounds for some reason?
+	-- if so, just return the empty set.
+	if (node == oob) then return {} end
 
 	local candidates = neighbourset(node)
 	-- XXX: customise failure mode?
