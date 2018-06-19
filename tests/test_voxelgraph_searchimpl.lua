@@ -48,11 +48,11 @@ local C = "default:cobble"
 
 -- hey look, it's nethack!
 local src = {
-	".............",
-	"......S...S..",
-	".S.C.SSS.SCS.",
-	"......S...S..",
-	".............",
+	".................",
+	"......S...S...C..",
+	".S.C.SSS.SCS.CSC.",
+	"......S...S...C..",
+	".................",
 }
 local map = {
 	["."] = "air",
@@ -186,4 +186,14 @@ end
 local plus = {{x=5,y=2,z=0}, {x=7,y=2,z=0}, {x=6,y=1,z=0}, {x=6,y=3,z=0}}
 expect_vector_set(plus, successor({grid=grid, pos={x=6,y=2,z=0}}, nil))
 empty(psuccessors({x=10,y=2,z=0}))
+
+-- finally we have the plus shape on the far right.
+-- the stone in the middle should include it's surrounding cobblestone,
+-- but those cobble themselves are dead ends.
+local plus = {{x=13,y=2,z=0}, {x=15,y=2,z=0}, {x=14,y=1,z=0}, {x=14,y=3,z=0}}
+expect_vector_set(plus, successor({grid=grid, pos={x=14,y=2,z=0}}, nil))
+empty(psuccessors({x=13,y=2,z=0}))
+empty(psuccessors({x=15,y=2,z=0}))
+empty(psuccessors({x=14,y=1,z=0}))
+empty(psuccessors({x=14,y=3,z=0}))
 
