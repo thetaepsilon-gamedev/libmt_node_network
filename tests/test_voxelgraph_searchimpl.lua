@@ -15,6 +15,8 @@ local neighbourset = function(node)
 		-- plus "+" pattern: +-X, +-Y
 		return { {x=1,y=0,z=0}, {x=-1,y=0,z=0}, {x=0,y=1,z=0}, {x=0,y=-1,z=0}}
 	end
+	-- for testing purposes: object loudly if we're started on an air block
+	assert(node.name ~= "air")
 	-- explicitly return empty set, nil is treated as an internal error.
 	return {}
 end
