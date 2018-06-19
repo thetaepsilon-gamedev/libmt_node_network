@@ -3,6 +3,7 @@
 -- (assuming the grid object populates the name field):
 --]]
 local neighbourset = function(node)
+	--print(node.name)
 	if (node.name == "default:stone") then
 		-- horizontal plus "+" pattern: +-X, +-Z
 		return { {x=1,y=0,z=0}, {x=-1,y=0,z=0}, {x=0,y=0,z=1}, {x=0,y=0,z=-1}}
@@ -11,8 +12,11 @@ local neighbourset = function(node)
 	return {}
 end
 local inbound_filter = function(data)
-	if data.node.name == "default:stone" or "default:cobble" then return true end
-	return false
+	local n = data.node.name
+	--print(n)
+	local accept = (n == "defaut:stone") or (n == "default:cobble")
+	--print(accept)
+	return accept
 end
 
 --[[
@@ -116,6 +120,7 @@ local grid =
 -- utility functions for testing what comes out of the successor
 local table_is_empty = function(t)
 	local k, v = next(t)
+	--print(k, v)
 	return k == nil
 end
 local empty = function(t)
@@ -133,8 +138,11 @@ local successor = searchimpl.create_successor(queryf)
 -- now, poke positions on the grid and see what we get back for successors.
 -- we kind of cheat here as this successor doesn't use the hash it gets,
 -- as all the information it needs is present in the passed vertex object.
-local fetch_position_successors = function(pos)
-	
+local psuccessors = function(pos)
+	return successor({grid=grid, pos=pos}, nil)
 end
-
+-- first up is the lone stone and cobble blocks ("S" and "C").
+-- both of these ought to return the empty set.
+--print(grid.get({x=0,y=2,z=0}).name)
+empty(psuccessors({x=1,y=2,z=0}))
 
