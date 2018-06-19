@@ -78,6 +78,7 @@ local euclid_offset = function(base, offset)
 	assert(type(r) == "table")
 	assert(r ~= oob)
 	assert(r.grid == grid)
+	assert(r.grid.id == grid.id)
 	assert(eq(r.pos, expected))
 	assert(eq(r.direction, offset))
 end
