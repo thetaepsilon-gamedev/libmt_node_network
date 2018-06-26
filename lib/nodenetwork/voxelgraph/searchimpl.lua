@@ -252,7 +252,7 @@ local create_successor = function(query_functions)
 
 	return function(vertex, hash)
 		return successor_inner(vertex, neighbourset, inbound_filter, hasher)
-	end
+	end, hasher
 end
 i.create_successor = create_successor
 
