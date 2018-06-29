@@ -91,7 +91,7 @@ local mk_set_visitor = function()
 	end
 	return visitor, gathered
 end
-local m_bfmap = mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.bfmap")
+local m_bfmap = mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.floodsearch.bfmap")
 local newsearch = m_bfmap.new
 -- then, kick off a search from a given vertex,
 -- again gathering up vertices it finds.

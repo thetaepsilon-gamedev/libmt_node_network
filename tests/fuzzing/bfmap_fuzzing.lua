@@ -1,7 +1,7 @@
 #!/usr/bin/env lua51s
 
 local require = mtrequire
-local bfmap = require("com.github.thetaepsilon.minetest.libmt_node_network.bfmap")
+local bfmap = require("com.github.thetaepsilon.minetest.libmt_node_network.floodsearch.bfmap")
 
 local bindio = function(file)
 	return function(data)
