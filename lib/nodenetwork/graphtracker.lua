@@ -238,3 +238,8 @@ local add_vertex_inner = function(bsuccessor, searchfactory, groups, maptogroup,
 	return decide_add_result(gathered, touchedset)
 end
 
+local i = {}
+i.add_vertex_inner = add_vertex_inner
+
+return i
+
