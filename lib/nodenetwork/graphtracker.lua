@@ -172,7 +172,9 @@ end
 -- and this just something I came up with just now...
 local matchvf = function(v, t)
 	local f = t[v]
-	if not f then error("matchvf(): no handler for case of "..tostring(v))
+	if not f then
+		error("matchvf(): no handler for case of "..tostring(v))
+	end
 	return f(v)
 end
 
