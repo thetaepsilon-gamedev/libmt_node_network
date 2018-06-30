@@ -180,9 +180,9 @@ end
 local decide_add_result = function(gathered, touchedset)
 	local category = table_quick_size(touchedset)
 	return matchvf(category, {
-		"none" = function() return { type="new", newset=gathered } end,
-		"single" = function() return { type="append", appendset=gathered } end,
-		"many" = function() return {
+		none	= function() return { type="new", newset=gathered } end,
+		single	= function() return { type="append", appendset=gathered } end,
+		many	= function() return {
 			type="merge",
 			mergeset=touchedset,
 			extraset=gathered,
