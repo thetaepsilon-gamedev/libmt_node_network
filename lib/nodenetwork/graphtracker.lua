@@ -77,38 +77,13 @@ however it's principle is the same - pass it a hash,
 and it'll either respond wich an ID or nil.
 ]]
 
-
-
--- the bfmap routine offers various hooks that can be run during the search.
--- for the most part, we're only interested in the visitor callback,
--- and we just want to lump all found vertices into a table.
--- so first, the visitor hook:
-local mk_set_visitor = function()
-	local gathered = {}
-	local visitor = function(vertex, hash)
-		assert(gathered[hash] == nil, "WTF condition: duplicate visitation!?")
-		gathered[hash] = vertex
-	end
-	return visitor, gathered
-end
-local m_bfmap = mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.floodsearch.bfmap")
+local m_bfmap =
+	mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.floodsearch.bfmap")
 local newsearch = m_bfmap.new
--- then, kick off a search from a given vertex,
--- again gathering up vertices it finds.
-local callbacks = {}
-local init_search = function(initialv, initialhash, successor)
-	local visitor, gathered = mk_set_visitor()
-	callbacks.visitor = visitor
-	local opts = nil
-	local search = newsearch(initialv, initialhash, successor, callbacks, opts)
-	return search, gathered
-end
--- finally, bake in the initial hasher for code that doesn't need to see it.
-local bake_constructor_hasher_ = function(hasher)
-	return function(initialv, successor)
-		return init_search(initialv, hasher(initialv), successor)
-	end
-end
+local m_helpers =
+	mtrequire("com.github.thetaepsilon.minetest.libmt_node_network.floodsearch.bfmap_helpers")
+local mk_set_visitor = m_helpers.mk_set_visitor
+
 
 
 
@@ -215,15 +190,20 @@ local decide_add_result = function(gathered, touchedset)
 	})
 end
 
--- this function just analyses the addition but perfoms no action.
-local add_vertex_inner = function(bsuccessor, searchfactory, groups, maptogroup, vertex)
+-- this function just analyses the addition but performs no action.
+local add_vertex_inner = function(successorfactory, searchfactory, groups, maptogroup, vertex)
 	-- we must start by running a search from the starting vertex.
 	-- to only follow untracked vertices,
 	-- we wrap the successor to filter through returned successor sets
 	-- and only indicate untracked vertices to the search,
 	-- while making a note of which tracked groups it would have touched.
+
+	-- this is only necessary because some successors
+	-- (like voxelgraph) only have state that makes sense for one search op.
+	local bsuccessor, hasher = successorfactory()
 	local successor, touchedset = mk_untracked_successor(bsuccessor, maptogroup)
-	local search, gathered = searchfactory(vertex, successor)
+	local hash = hasher(vertex)
+	local search, gathered = searchfactory(vertex, hash, successor)
 	while search.advance() do end
 	-- at this point, we should end up with
 	-- * the untracked nodes (should be at least one!) in gathered
