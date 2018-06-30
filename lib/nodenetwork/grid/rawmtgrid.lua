@@ -44,7 +44,9 @@ local construct = function(minetest)
 	assert(type(get) == "function")
 	self.get = get
 	self.neighbour = mk_neighbour_inner(self)
-	self.id = {}
+	-- use the getter as the (hopefully) unique id.
+	-- for minetest.get_node, this makes instances of this comparable.
+	self.id = get
 	return self
 end
 
