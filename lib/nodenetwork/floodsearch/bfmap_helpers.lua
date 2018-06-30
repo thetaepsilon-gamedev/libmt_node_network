@@ -70,7 +70,7 @@ local search_factory__ = function(callback_f_)
 	return function(opts)
 		local factory = function(initialv, initialhash, successor)
 			local callbacks, extradata = callback_f_()
-			local search = newseach(
+			local search = newsearch(
 				initialv,
 				initialhash,
 				successor,
